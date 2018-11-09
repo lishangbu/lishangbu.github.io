@@ -112,7 +112,7 @@
 <meta name="keywords" content="Spring Boot">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Spring Boot项目使用服务器磁盘路径上传文件">
-<meta property="og:url" content="https://lishangbu.github.io/2018/03/25/Spring-Boot项目使用服务器磁盘路径上传文件/index.html">
+<meta property="og:url" content="https://lishangbu.github.io/Spring-Boot项目使用服务器磁盘路径上传文件/index.html">
 <meta property="og:site_name" content="码畜·小布">
 <meta property="og:description" content="最近公司的项目有一个上传文件的需求，由于项目是基于Spring Boot构建的，因为只是一个小型项目，也没有用到云存储，或者FastDFS之类的分布式文件系统，而是直接写在当前服务器的磁盘上。在打成最终的jar包之后，出现了无法往jar包里设定的的classpath路径下的上传路径中写入文件。经过一番研究后找到解决方案，现记录如下。">
 <meta property="og:locale" content="zh-CN">
@@ -126,7 +126,7 @@
 
 
 
-  <link rel="canonical" href="https://lishangbu.github.io/2018/03/25/Spring-Boot项目使用服务器磁盘路径上传文件/">
+  <link rel="canonical" href="https://lishangbu.github.io/Spring-Boot项目使用服务器磁盘路径上传文件/">
 
 
 
@@ -283,7 +283,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://lishangbu.github.io/2018/03/25/Spring-Boot项目使用服务器磁盘路径上传文件/">
+    <link itemprop="mainEntityOfPage" href="https://lishangbu.github.io/Spring-Boot项目使用服务器磁盘路径上传文件/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
       <meta itemprop="name" content="小布">
@@ -350,6 +350,16 @@
           
 
           
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/Spring-Boot项目使用服务器磁盘路径上传文件/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count gitment-comments-count" data-xid="/Spring-Boot项目使用服务器磁盘路径上传文件/" itemprop="commentsCount"></span>
+                </a>
+              </span>
             
           
 
@@ -438,7 +448,7 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2018/04/01/Spring-Security基本原理/" rel="prev" title="Spring Security基本原理">
+              <a href="/Spring-Security基本原理/" rel="prev" title="Spring Security基本原理">
                 Spring Security基本原理 <i class="fa fa-chevron-right"></i>
               </a>
             
@@ -461,6 +471,13 @@
 
           </div>
           
+
+  
+    <div class="comments" id="comments">
+      
+        <div id="gitment-container"></div>
+      
+    </div>
 
   
 
@@ -702,6 +719,48 @@
 
 
 
+
+
+<!-- LOCAL: You can save these files to your site and update links -->
+    
+        
+        <link rel="stylesheet" href="https://aimingoo.github.io/gitmint/style/default.css">
+        <script src="https://aimingoo.github.io/gitmint/dist/gitmint.browser.js"></script>
+    
+<!-- END LOCAL -->
+
+    
+      <style>
+        a.gitment-editor-footer-tip { display: none; }
+        .gitment-container.gitment-footer-container { display: none; }
+      </style>
+    
+
+    
+      <script type="text/javascript">
+      function renderGitment(){
+        var gitment = new Gitmint({
+            id: window.location.pathname,
+            owner: 'lishangbu',
+            repo: 'hexo-blog-gitment',
+            
+            lang: "" || navigator.language || navigator.systemLanguage || navigator.userLanguage,
+            
+            oauth: {
+            
+            
+                client_secret: '7dc61f005241c8a13fbc89fc0de0808fb90f3126',
+            
+                client_id: '33327faf960e1eaa881e'
+            }});
+        gitment.render('gitment-container');
+      }
+
+      
+      renderGitment();
+      
+      </script>
+    
 
 
 

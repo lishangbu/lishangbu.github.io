@@ -112,7 +112,7 @@
 <meta name="keywords" content="Spring Security">
 <meta property="og:type" content="article">
 <meta property="og:title" content="自定义用户认证逻辑">
-<meta property="og:url" content="https://lishangbu.github.io/2018/04/20/自定义用户认证逻辑/index.html">
+<meta property="og:url" content="https://lishangbu.github.io/自定义用户认证逻辑/index.html">
 <meta property="og:site_name" content="码畜·小布">
 <meta property="og:description" content="在上一篇Spring Security基本原理中我们的演示案例使用的用户名只能是一个固定的用户名user,它的密码是每次启动应用时自动生成的，这个逻辑肯定是不能满足我们的需求的。比方说最常见的一个场景:从数据库中读取用户的信息。这篇我们就来谈一谈如何在认证的过程中实现一些自定义的需求。">
 <meta property="og:locale" content="zh-CN">
@@ -132,7 +132,7 @@
 
 
 
-  <link rel="canonical" href="https://lishangbu.github.io/2018/04/20/自定义用户认证逻辑/">
+  <link rel="canonical" href="https://lishangbu.github.io/自定义用户认证逻辑/">
 
 
 
@@ -289,7 +289,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://lishangbu.github.io/2018/04/20/自定义用户认证逻辑/">
+    <link itemprop="mainEntityOfPage" href="https://lishangbu.github.io/自定义用户认证逻辑/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
       <meta itemprop="name" content="小布">
@@ -356,6 +356,16 @@
           
 
           
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/自定义用户认证逻辑/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count gitment-comments-count" data-xid="/自定义用户认证逻辑/" itemprop="commentsCount"></span>
+                </a>
+              </span>
             
           
 
@@ -469,7 +479,7 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/04/01/Spring-Security基本原理/" rel="next" title="Spring Security基本原理">
+              <a href="/Spring-Security基本原理/" rel="next" title="Spring Security基本原理">
                 <i class="fa fa-chevron-left"></i> Spring Security基本原理
               </a>
             
@@ -479,7 +489,7 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2018/05/05/个性化用户认证流程(一)/" rel="prev" title="个性化用户认证流程(一)">
+              <a href="/个性化用户认证流程(一)/" rel="prev" title="个性化用户认证流程(一)">
                 个性化用户认证流程(一) <i class="fa fa-chevron-right"></i>
               </a>
             
@@ -502,6 +512,13 @@
 
           </div>
           
+
+  
+    <div class="comments" id="comments">
+      
+        <div id="gitment-container"></div>
+      
+    </div>
 
   
 
@@ -768,6 +785,48 @@
 
 
 
+
+
+<!-- LOCAL: You can save these files to your site and update links -->
+    
+        
+        <link rel="stylesheet" href="https://aimingoo.github.io/gitmint/style/default.css">
+        <script src="https://aimingoo.github.io/gitmint/dist/gitmint.browser.js"></script>
+    
+<!-- END LOCAL -->
+
+    
+      <style>
+        a.gitment-editor-footer-tip { display: none; }
+        .gitment-container.gitment-footer-container { display: none; }
+      </style>
+    
+
+    
+      <script type="text/javascript">
+      function renderGitment(){
+        var gitment = new Gitmint({
+            id: window.location.pathname,
+            owner: 'lishangbu',
+            repo: 'hexo-blog-gitment',
+            
+            lang: "" || navigator.language || navigator.systemLanguage || navigator.userLanguage,
+            
+            oauth: {
+            
+            
+                client_secret: '7dc61f005241c8a13fbc89fc0de0808fb90f3126',
+            
+                client_id: '33327faf960e1eaa881e'
+            }});
+        gitment.render('gitment-container');
+      }
+
+      
+      renderGitment();
+      
+      </script>
+    
 
 
 
