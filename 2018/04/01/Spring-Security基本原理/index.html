@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.5.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.5.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.5.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.5.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="近期研究了Spring Security,现进行记录。">
+<meta name="keywords" content="Spring Security">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring Security基本原理">
+<meta property="og:url" content="https://lishangbu.github.io/2018/04/01/Spring-Security基本原理/index.html">
+<meta property="og:site_name" content="码畜·小布">
+<meta property="og:description" content="近期研究了Spring Security,现进行记录。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/2018427232339.png">
+<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/2018427232619.png">
+<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/2018427233524.png">
+<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/2018427213346.png">
+<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/2018427233524.png">
+<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/2018429172853.png">
+<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/2018427213346.png">
+<meta property="og:updated_time" content="2018-11-09T13:50:19.378Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spring Security基本原理">
+<meta name="twitter:description" content="近期研究了Spring Security,现进行记录。">
+<meta name="twitter:image" content="http://p7sojn4oj.bkt.clouddn.com/2018427232339.png">
+
+
+
+
+
+
+  <link rel="canonical" href="https://lishangbu.github.io/2018/04/01/Spring-Security基本原理/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Spring Security基本原理 | 码畜·小布</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">码畜·小布</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://lishangbu.github.io/2018/04/01/Spring-Security基本原理/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="小布">
+      <meta itemprop="description" content="曾梦想仗剑走天涯，后来bug太多就没去">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="码畜·小布">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Spring Security基本原理
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-04-01 22:23:01" itemprop="dateCreated datePublished" datetime="2018-04-01T22:23:01+08:00">2018-04-01</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2018-11-09 21:50:19" itemprop="dateModified" datetime="2018-11-09T21:50:19+08:00">2018-11-09</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>近期研究了Spring Security,现进行记录。<br><a id="more"></a></p>
+<h1 id="Spring-Security快速体验"><a href="#Spring-Security快速体验" class="headerlink" title="Spring Security快速体验"></a>Spring Security快速体验</h1><p>首先先进行一个最简单的demo。<br>默认情况下，在Spring Boot里,如果在classpath下面有Spring Security相关的jar包,那么Spring Boot会自动地替我们做一些安全的配置。本Demo正是基于Spring Boot构建,使用maven进行项目管理。maven核心POM依赖配置如下：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--Spring Security Oauth2相关--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-oauth2<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--Spring Security Web相关--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-web<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-test<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">scope</span>&gt;</span>test<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!--Spring 依赖管理平台--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.spring.platform<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>platform-bom<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>Brussels-SR9<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">type</span>&gt;</span>pom<span class="tag">&lt;/<span class="name">type</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">scope</span>&gt;</span>import<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!--Spring Cloud依赖管理--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-dependencies<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>Edgware.SR3<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">type</span>&gt;</span>pom<span class="tag">&lt;/<span class="name">type</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">scope</span>&gt;</span>import<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencyManagement</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>采用的Spring Boot版本为1.5.12.RELEASE,引入Spring依赖管理平台，最大程度地减少一些依赖的冲突情况，高版本的spring-cloud-starter-oauth2已经包含了Spring Security的依赖，因此引入这一个依赖即可。<br>然后写一个最简单的demo,只提供一个Rest服务：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SpringApplicationDemoApplication</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        SpringApplication.run(SpringApplicationDemoApplication.class, args);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping</span>(<span class="string">"/hello"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">hello</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"Hello,Spring Security!"</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>然后启动应用,访问<a href="http://localhost:8080/hello" target="_blank" rel="noopener">http://localhost:8080/hello</a> ，发现会弹一个如下的Http Basic认证框，让我们输入用户名和密码。<br><img src="http://p7sojn4oj.bkt.clouddn.com/2018427232339.png" alt="2018427232339"><br>在不进行任何自定义配置的情况下，Spring Security默认生成的用户名是固定的user,密码的话我们回来看看之前启动Spring Boot时的控制台，可以看到有这么一句话：<br>    Using default security password: fb39f959-fe9c-4d51-abb8-7303cfba4d30   </p>
+<p>这个就是Spring Security在启动时为我们随机生成的密码。<br><img src="http://p7sojn4oj.bkt.clouddn.com/2018427232619.png" alt="2018427232619"></p>
+<p>我们将密码拷贝下来，进行登录，便能够看到我们之前写的那个服务的响应了。</p>
+<p><img src="http://p7sojn4oj.bkt.clouddn.com/2018427233524.png" alt="2018427233524"></p>
+<p>从这个例子里我们可以看到,在默认的情况下,不做任何配置的时候，Spring Security做了这么两件事：   </p>
+<ol>
+<li>Spring Security将我们所有的服务都保护起来了,任何一个Rest服务,要想调用都要先进行身份认证。</li>
+<li>身份认证的方式就是上图中的http basic的方式,这个是Spring Security默认的一个行为。   </li>
+</ol>
+<p>但是，这个行为肯定是不能满足我们的需求的，因为没有任何一个应用会用这种Http Basic的方式去做用户的身份校验。<br>那么，如何覆盖掉Spring Security默认的行为？比如说，提供一个包含用户名和密码的表单登录。我们来看一下，如何处理这样的一个场景。<br>具体做法是，我们可以编写一个类，继承WebSecurityConfigurerAdapter,这个是Spring Security提供的一个适配器类,从这个名字我们就可以看出来，它是专门做Web安全应用配置的一个适配器,我们在类上写一个@Configuration注解将它声明为一个配置类，并override掉适配器里面的一个configure方法，从源码里我们可以看到有三个configure方法，分别接收三个不同的参数：AuthenticationManagerBuilder,WebSecurity,HttpSecurity。</p>
+<p>接收AuthenticationManagerBuilder的方法：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(AuthenticationManagerBuilder auth)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.disableLocalConfigureAuthenticationBldr = <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>接收WebSecurity的方法：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(WebSecurity web)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>我们重点关注接收参数为HttpSecurity的configure方法，可以看到，它的默认配置正是：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    http</span><br><span class="line">        .authorizeRequests()</span><br><span class="line">            .anyRequest().authenticated()</span><br><span class="line">            .and()</span><br><span class="line">        .formLogin().and()</span><br><span class="line">        .httpBasic();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这段配置翻译过来，正是我们先前的结论：默认情况下Spring Security应用的所有请求都需要经过认证，并且认证方式为Http Basic。<br>我们现在覆盖掉参数是HttpSecurity的方法，我们想要达到的一个效果是让它用表单的形式登录，那么我们只要像下面这样写：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="comment">//启用基于表单形式的登录</span></span><br><span class="line">    http.formLogin()</span><br><span class="line">        .and()</span><br><span class="line">        <span class="comment">//下面的配置都是关于授权的配置</span></span><br><span class="line">        .authorizeRequests()</span><br><span class="line">        <span class="comment">//任何请求</span></span><br><span class="line">        .anyRequest()</span><br><span class="line">        <span class="comment">//都需要认证</span></span><br><span class="line">        .authenticated();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>http.formLogin就是使用基于表单登录进行认证的方式。正如我们一直所强调的，安全其实就是两件事，一个是认证，一个是授权，认证我们已经配置了，但是还不能落下授权。authorizeRequests()开始的就是关于授权的配置。通过五行代码，我们其实就已经定义了一个最简单的安全环境:用表单登录进行身份认证，所有的请求都需要身份认证后才能访问。<br>定义了这个类之后，我们把系统重新启动，同样访问<a href="http://localhost:8080/hello" target="_blank" rel="noopener">http://localhost:8080/hello</a> ，这时候我们会发现跳到了如下的一个表单登录页：<br><img src="http://p7sojn4oj.bkt.clouddn.com/2018427213346.png" alt="2018427213346"><br>在输入了用户名user和从控制台复制过来的随机密码后，我们同样系统在此从登录页跳回了之前的访问的服务，我们也再次看到先前的那个服务的响应。   </p>
+<p><img src="http://p7sojn4oj.bkt.clouddn.com/2018427233524.png" alt="2018427233524">   </p>
+<p><strong>注意:</strong>这里有一个跳转，实际上我们一开始访问这个服务的时候，它给我们跳转到了登录页上，在认证成功后，又再次重定向到我们请求的服务上，这个也是Spring Security默认的登录成功处理器的一个行为。<br>假设说，我们就是不想使用表单登录，就想使用Http Basic方式进行登录，那么应该怎么写呢？其实也很简单，我们只需要像下面这样写：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="comment">//启用基于Http Basic形式的登录</span></span><br><span class="line">    http.httpBasic()</span><br><span class="line">        .and()</span><br><span class="line">        <span class="comment">//下面的配置都是关于授权的配置</span></span><br><span class="line">        .authorizeRequests()</span><br><span class="line">        <span class="comment">//任何请求</span></span><br><span class="line">        .anyRequest()</span><br><span class="line">        <span class="comment">//都需要认证</span></span><br><span class="line">        .authenticated();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>启动应用后，发现又回到之前Http Basic登录认证的方式了。<br>例子我们暂时先演示到这里，基于这个例子我们已经对Spring Security有了一个基本印象，基于这个印象我们接下来来看看Spring Security的基本原理。</p>
+<h1 id="Spring-Security基本原理"><a href="#Spring-Security基本原理" class="headerlink" title="Spring Security基本原理"></a>Spring Security基本原理</h1><p><img src="http://p7sojn4oj.bkt.clouddn.com/2018429172853.png" alt="2018429172853">   </p>
+<p>上图中，最右边这个就是我们的Rest API,也就是我们刚才写的Controller,左边的这组过滤器链正是Spring Security的核心。实际上Spring Security的本质就是一组Filter。因此所有访问服务的请求都会经过Spring Security的过滤器，同样服务器的响应也是会经过这些过滤器然后返回给终端。这些过滤器在系统启动的时候Spring Boot会自动把它配置到上下文上，这个我们暂时先不关注。我们现在主要关注一下这个过滤器链上有哪些过滤器，当然，也是主要的几种过滤器。<br>首先，最核心的就是上图中绿色的那些过滤器,它的作用是用来认证用户的身份.每一个方块代表一种过滤器，每一种过滤器负责处理一种认证方式。在先前的例子里我们举了两种认证方式:一种是表单登录，一种是Http Basic方式登录，相应地，会有两个类来处理这两种认证请求，也就是上图中的UsernamePasswordAuthenticationFilter(处理表单登录)和BasicAuthenticationFilter(处理HttpBasic登录)。这些绿色的过滤器的主要作用是检查当前的请求里面是不是有这些过滤器所需要的信息.比如说，对UsernamePassword这个过滤器来说，首先它会检查你这个请求是不是一个登录请求，其次它会检查这个登录请求里带没带用户名密码。如果这个登录请求中携带了用户名和密码，这个过滤器就会尝试用这个用户名和密码去进行登录。如果这个请求中没有携带用户名和密码，那么这个过滤器就会把这个请求放行到下一个过滤器。<br>下一个过滤器比如说是BasicAuthenticationFilter,那么这个过滤器就会检查你的请求头里面是不是有Basic开头的这种Authorization信息,如果有的话，它会尝试拿出来做Base64解码,然后取出用户名和密码去尝试进行登录。然后如果我们还有其他的认证方式（其实在Spring Security里它还提供了其他的认证方式），那么按照这个原理它会一个一个往下走,任何一个过滤器它成功地完成了用户的登录之后,它会在请求上做一个标记，告诉后面的过滤器当前的用户已经认证成功了。<br>最终请求经过了绿色的过滤器以后会到一个叫做FilterSecutrityInterceptor的过滤器，这个过滤器是整个Spring Security的最后一环,在这个“守门人”的身后，就是我们自己写的服务了。因此在这个服务里面，它会去决定我们当前的请求能不能去访问后面的服务。那么它依据什么判断呢？就是依据我们代码里的配置。比如说我们先前的配置：所有的请求都要经过身份认证后才能访问，那么它就会去判断当前的请求是不是经过了前面某一个过滤器的身份认证。当然，前面的那个认证配置其实可以配置得很复杂的，比如说某些请求只有管理员才能访问，那么这些规则都会放在FilterSecutrityInterceptor过滤器里面，这个过滤器会根据这些规则去验证。验证的结果也只有两种,如果验证通过的话，那么这个请求就可以访问我们最终的服务了,如果验证不通过，那么根据不通过的原因，它会抛出不同的异常.比如说先前的配置中如果配了所有的请求都要经过身份认证但是实际请求并没有经过认证的话那么它会抛一个身份认证不通过的异常，再比如说先前的配置中如果配置了请求必须要管理员才能访问,那么即使你经过了身份认证但是你不是VIP用户的话那么这个过滤器就会抛一个没权限的异常。总而言之，它会根据不能访问的原因抛出不同的异常。<br>在这个异常抛出来以后，在这个过滤器的前面,还有一个叫做ExceptionTranslationFilter的过滤器，这个过滤器的作用就是用来捕获FilterSecutrityInterceptor所抛出来的异常,然后这个过滤器会根据抛出来的异常做相应的处理,比如说你是因为没有登录所以不能访问,那么它会根据前面那些过滤器的配置引导用户去进行登录.比如说前面我们配置了UsernamePasswordAuthenticationFilter,那么它就会把用户引导到一个登录页面上，比如说我们前面配置了BasicAuthenticationFilter,那么它就会在浏览器上弹一个HttpBasic认证框。<br>这就是Spring Security提供的所有功能和特性都是建立在这个基础之上的。实际上我们工作中一些常见的定制开发比如说增加手机验证码登录，增加第三方QQ微信登录就是在这些绿色的过滤器链上增加不同的过滤器来支持这些不同的认证方式。<br>实际这些程序在运行的时候上面的过滤器肯定不止这三种，一般一个普通的应用一旦运行都会有十几种过滤器，但是目前要想理解Spring Security的基本原理只需要理解这三种过滤器就行了。<br><strong>注意:</strong><br>在这个过滤器链上，绿色的部分我们是可以通过配置来决定其是否生效，比如说我们不想用BasicAuthenticationFilter就可以在配置中移除httpBasic的属性，这样BasicAuthenticationFilter就不会生效。但是除了绿色的以外，其他的颜色的过滤器都是不能被我们控制的,它们一定会在过滤器链上并且它们一定会在Spring Security事先指定的位置，比如说这个蓝色的过滤器一定会在橙色的过滤器之前，这个位置我们是不能控制的,我们也不能把它从过滤器上移除。</p>
+<h1 id="Spring-Security源码初探"><a href="#Spring-Security源码初探" class="headerlink" title="Spring Security源码初探"></a>Spring Security源码初探</h1><p>了解完Spring Security的基本原理之后,我们在Spring Security的源码上打一些断点,然后结合上面的图把整个原理再过一下。<br>我们在四个位置打上断点，分别是：</p>
+<ol>
+<li>负责做用户的表单登录的UsernamePasswordAuthenticationFilter类。它是用来做用户的登录动作的。<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">UsernamePasswordAuthenticationFilter</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>(<span class="keyword">new</span> AntPathRequestMatcher(<span class="string">"/login"</span>, <span class="string">"POST"</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>在它的构造器里我们可以看到它只会处理“/login”的POST请求，收到这个请求以后它会从Request里面拿到用户名和密码,然后在下面做一个登录。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Authentication <span class="title">attemptAuthentication</span><span class="params">(HttpServletRequest request,</span></span></span><br><span class="line"><span class="function"><span class="params">        HttpServletResponse response)</span> <span class="keyword">throws</span> AuthenticationException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (postOnly &amp;&amp; !request.getMethod().equals(<span class="string">"POST"</span>)) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> AuthenticationServiceException(</span><br><span class="line">                <span class="string">"Authentication method not supported: "</span> + request.getMethod());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    String username = obtainUsername(request);</span><br><span class="line">    String password = obtainPassword(request);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (username == <span class="keyword">null</span>) &#123;</span><br><span class="line">        username = <span class="string">""</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (password == <span class="keyword">null</span>) &#123;</span><br><span class="line">        password = <span class="string">""</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    username = username.trim();</span><br><span class="line"></span><br><span class="line">    UsernamePasswordAuthenticationToken authRequest = <span class="keyword">new</span> UsernamePasswordAuthenticationToken(</span><br><span class="line">            username, password);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Allow subclasses to set the "details" property</span></span><br><span class="line">    setDetails(request, authRequest);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.getAuthenticationManager().authenticate(authRequest);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>因此我们在75行刚开始进行认证的地方打上断点。   </p>
+<ol start="2">
+<li>进行能否访问的最终判断FilterSecutrityInterceptor类里的124行有个beforeInvocation方法，最终的判断就是在这个方法里执行的。它的部分源码如下：<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">InterceptorStatusToken token = <span class="keyword">super</span>.beforeInvocation(fi);</span><br><span class="line"></span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    fi.getChain().doFilter(fi.getRequest(), fi.getResponse());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>当beforeInvocation方法里面的判断逻辑通过以后执行下面的doFilter的时候实际上就是在调后面真正的服务了，所以我们在beforeInvocation这一行加一个断点。   </p>
+<ol start="3">
+<li>处理异常的ExceptionTranslationFilter类<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doFilter</span><span class="params">(ServletRequest req, ServletResponse res, FilterChain chain)</span></span></span><br><span class="line"><span class="function">        <span class="keyword">throws</span> IOException, ServletException </span>&#123;</span><br><span class="line">    HttpServletRequest request = (HttpServletRequest) req;</span><br><span class="line">    HttpServletResponse response = (HttpServletResponse) res;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        chain.doFilter(request, response);</span><br><span class="line"></span><br><span class="line">        logger.debug(<span class="string">"Chain processed normally"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">catch</span> (IOException ex) &#123;</span><br><span class="line">        <span class="keyword">throw</span> ex;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">catch</span> (Exception ex) &#123;</span><br><span class="line">        <span class="comment">// Try to extract a SpringSecurityException from the stacktrace</span></span><br><span class="line">        Throwable[] causeChain = throwableAnalyzer.determineCauseChain(ex);</span><br><span class="line">        RuntimeException ase = (AuthenticationException) throwableAnalyzer</span><br><span class="line">                .getFirstThrowableOfType(AuthenticationException.class, causeChain);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (ase == <span class="keyword">null</span>) &#123;</span><br><span class="line">            ase = (AccessDeniedException) throwableAnalyzer.getFirstThrowableOfType(</span><br><span class="line">                    AccessDeniedException.class, causeChain);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (ase != <span class="keyword">null</span>) &#123;</span><br><span class="line">            handleSpringSecurityException(request, response, chain, ase);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// Rethrow ServletExceptions and RuntimeExceptions as-is</span></span><br><span class="line">            <span class="keyword">if</span> (ex <span class="keyword">instanceof</span> ServletException) &#123;</span><br><span class="line">                <span class="keyword">throw</span> (ServletException) ex;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (ex <span class="keyword">instanceof</span> RuntimeException) &#123;</span><br><span class="line">                <span class="keyword">throw</span> (RuntimeException) ex;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// Wrap other Exceptions. This shouldn't actually happen</span></span><br><span class="line">            <span class="comment">// as we've already covered all the possibilities for doFilter</span></span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(ex);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>我们可以看到在这个过滤器里面它的doFilter方法非常简单,仅仅进行了调后面的过滤器这件事，它的主要逻辑是写在异常处理里的,我们在这个类的123行也就是异常处理的第一行打上一个断点。   </p>
+<ol start="4">
+<li>自己写的Rest Api服务，这个没什么好说的。</li>
+</ol>
+<p>然后我们把应用启动起来，再进行一下一开始的流程。<br>我们首先访问一下<a href="http://localhost:8080" target="_blank" rel="noopener">http://localhost:8080</a> ，会发现它已经进到了FilterSecutrityInterceptor类中，因为这个请求里没有携带任何与登录相关的信息，所以前面那一堆绿色的过滤器统统不起作用,因此请求一直走到最后一个过滤器，由它来判断能不能访问后面的真正的服务,因为之前的代码里写的是所有的请求都要认证，所以我们可以看到执行FilterSecutrityInterceptor类的beforeInvocation方法的时候它抛了一个异常,这个异常抛到哪？正是抛到了ExceptionTranslationFilter类中，ExceptionTranslationFilter类捕获到了异常就会对这个异常进行处理，这个异常处理其实就是一个重定向到默认的登录页面。这个时候我们可以看到前台的页面又回到了之前那个熟悉的登录页面上。<br><img src="http://p7sojn4oj.bkt.clouddn.com/2018427213346.png" alt="2018427213346"><br>然后我们在页面的表单中进行一下登录操作,我们会发现前台提交登录请求后程序进入了UsernamePasswordAuthenticationFilter类.因为我们当前发起的这个请求就是方法为“POST”路径为“/login”的请求了，正好能被UsernamePasswordAuthenticationFilter处理，它会从请求中拿到用户名和密码,然后我们先不管认证的流程，继续往下走，会发现它又走到了FilterSecutrityInterceptor类的beforeInvocation方法。   </p>
+<p><strong>注意:</strong><br>UsernamePasswordAuthenticationFilter类在处理完“/login”的请求之后，其实还有一个跳转回原本的请求路径“/hello”的过程,所以在跳转到beforeInvocation方法的时候其实这个时候处理的请求是”/hello”请求。<br>然后继续往下走我们会发现它这次没有抛异常,而是走到了下面的doFilter方法,然后继续往下就是走进我们自己的服务并进行处理，处理完后直接在页面上显示处理结果“Hello,Spring Security”了。<br>这就是我们访问一个受保护的请求，然后Spring Security引导我们去登录,登录完成后再重新回到之前访问的请求上的整个的过程中Spring的内部代码的执行流程以及它的一个原理的说明。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Spring-Security/" rel="tag"># Spring Security</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/03/25/Spring-Boot项目使用服务器磁盘路径上传文件/" rel="next" title="Spring Boot项目使用服务器磁盘路径上传文件">
+                <i class="fa fa-chevron-left"></i> Spring Boot项目使用服务器磁盘路径上传文件
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/04/20/自定义用户认证逻辑/" rel="prev" title="自定义用户认证逻辑">
+                自定义用户认证逻辑 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">小布</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯，后来bug太多就没去</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">6</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">4</span>
+                    <span class="site-state-item-name">标签</span>
+                  
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Spring-Security快速体验"><span class="nav-number">1.</span> <span class="nav-text">Spring Security快速体验</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Spring-Security基本原理"><span class="nav-number">2.</span> <span class="nav-text">Spring Security基本原理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Spring-Security源码初探"><span class="nav-number">3.</span> <span class="nav-text">Spring Security源码初探</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright"> &copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">小布</span>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.5.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.5.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.5.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.5.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.5.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.5.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.5.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

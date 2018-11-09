@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.5.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.5.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.5.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.5.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="在上一篇Spring Security基本原理中我们的演示案例使用的用户名只能是一个固定的用户名user,它的密码是每次启动应用时自动生成的，这个逻辑肯定是不能满足我们的需求的。比方说最常见的一个场景:从数据库中读取用户的信息。这篇我们就来谈一谈如何在认证的过程中实现一些自定义的需求。">
+<meta name="keywords" content="Spring Security">
+<meta property="og:type" content="article">
+<meta property="og:title" content="自定义用户认证逻辑">
+<meta property="og:url" content="https://lishangbu.github.io/2018/04/20/自定义用户认证逻辑/index.html">
+<meta property="og:site_name" content="码畜·小布">
+<meta property="og:description" content="在上一篇Spring Security基本原理中我们的演示案例使用的用户名只能是一个固定的用户名user,它的密码是每次启动应用时自动生成的，这个逻辑肯定是不能满足我们的需求的。比方说最常见的一个场景:从数据库中读取用户的信息。这篇我们就来谈一谈如何在认证的过程中实现一些自定义的需求。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/201853205658.png">
+<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/2018427233524.png">
+<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/201853215615.png">
+<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/2018532206.png">
+<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/201853205658.png">
+<meta property="og:updated_time" content="2018-11-09T13:50:19.378Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="自定义用户认证逻辑">
+<meta name="twitter:description" content="在上一篇Spring Security基本原理中我们的演示案例使用的用户名只能是一个固定的用户名user,它的密码是每次启动应用时自动生成的，这个逻辑肯定是不能满足我们的需求的。比方说最常见的一个场景:从数据库中读取用户的信息。这篇我们就来谈一谈如何在认证的过程中实现一些自定义的需求。">
+<meta name="twitter:image" content="http://p7sojn4oj.bkt.clouddn.com/201853205658.png">
+
+
+
+
+
+
+  <link rel="canonical" href="https://lishangbu.github.io/2018/04/20/自定义用户认证逻辑/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>自定义用户认证逻辑 | 码畜·小布</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">码畜·小布</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://lishangbu.github.io/2018/04/20/自定义用户认证逻辑/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="小布">
+      <meta itemprop="description" content="曾梦想仗剑走天涯，后来bug太多就没去">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="码畜·小布">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">自定义用户认证逻辑
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-04-20 19:28:04" itemprop="dateCreated datePublished" datetime="2018-04-20T19:28:04+08:00">2018-04-20</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2018-11-09 21:50:19" itemprop="dateModified" datetime="2018-11-09T21:50:19+08:00">2018-11-09</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在上一篇<a href="https://lishangbu.github.io/posts/Spring-Security%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86/">Spring Security基本原理</a>中我们的演示案例使用的用户名只能是一个固定的用户名user,它的密码是每次启动应用时自动生成的，这个逻辑肯定是不能满足我们的需求的。比方说最常见的一个场景:从数据库中读取用户的信息。这篇我们就来谈一谈如何在认证的过程中实现一些自定义的需求。<br><a id="more"></a><br>这一篇我们主要讲三个方面：</p>
+<ol>
+<li>如何处理用户信息获取逻辑</li>
+<li>如何处理用户校验逻辑</li>
+<li>如何处理密码的加密和解密</li>
+</ol>
+<h1 id="处理用户信息获取逻辑"><a href="#处理用户信息获取逻辑" class="headerlink" title="处理用户信息获取逻辑"></a>处理用户信息获取逻辑</h1><p>处理用户信息获取逻辑也就是我们如何从数据库中把用户信息读取出来，我们首先还是先进行demo的演示。用户信息的获取逻辑在Spring Security里是被封装在一个接口后面的，这个接口就是UserDetailsService,这是一个由Spring Security项目提供的接口，在这个接口里面只有一个方法:<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserDetailsService</span> </span>&#123;</span><br><span class="line">	<span class="function">UserDetails <span class="title">loadUserByUsername</span><span class="params">(String username)</span> <span class="keyword">throws</span> UsernameNotFoundException</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这个方法接收一个username的参数，并且返回一个UserDetails类型的对象。这个方法的作用就是根据你输入的用户名在一个存储介质中读取你的用户信息，然后这个用户信息最终会被封装在UserDetails接口的一个实现类里。返回包含这个对象的用户信息以后Spring Security就会拿着这个用户信息去进行一些处理和校验。如果处理和校验能够通过，Spring Security就会把用户信息放到session里面，然后就可以认为你的登录就成功了。如果通过输入的用户名无法找到用户，那么框架就会抛出一个UsernameNotFoundException的异常，然后Spring Security捕获到这个异常它也会显示出相应的错误信息来。<br>下面我们就自己实现一个UserDetailsService接口的实现类，来具体看一下它的实际效果。首先声明一点，在这篇文章中我还是不会演示数据库的增删改查的，所以不会有建立数据库，连接数据库然后去读取数据库中的表的信息的配置，因为每个人在自己的工作使用的技术栈都是不一样的，每个项目的数据库都是不一样的，每个数据库的表都是不一样的，每个表的字段都是不一样的，所以这里不会提供具体的实现。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyUserDetailsService</span> <span class="keyword">implements</span> <span class="title">UserDetailsService</span> </span>&#123;</span><br><span class="line">	<span class="keyword">private</span> Logger logger=LoggerFactory.getLogger(<span class="keyword">this</span>.getClass());</span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> UserDetails <span class="title">loadUserByUsername</span><span class="params">(String username)</span> <span class="keyword">throws</span> UsernameNotFoundException </span>&#123;</span><br><span class="line">		logger.info(<span class="string">"登录用户名:&#123;&#125;"</span>,username);</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">new</span> User(username,<span class="string">"123456"</span>,AuthorityUtils.commaSeparatedStringToAuthorityList(<span class="string">"admin"</span>));</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>上面就是我们自己实现的一个简单的UserDetailsService接口的实现类。</p>
+<ul>
+<li>Component注解将这个类声明为Spring里面的一个bean。这个类已经是Spring的一个Bean了，所以如果要做数据库具体实现的直接在这个类里把自己的DAO对象（一般的DAO也好，Spring Data JPA的Repository也好，Mybatis的Mapper对象也好）注入进来之后就可以在loadUserByUsername方法里根据用户名到数据库中去查出对应的用户信息来。</li>
+<li>这个User用的是org.springframework.security.core.userdetails包中的User,这个类是Spring提供的已经实现UserDetails接口的一个类。这个类接收三个参数，第一个是username，只要把用户输入的username传进去即可，第二个是password就是用户在数据库中存的密码，我们这里是直接写死的一个密码“123456”，第三个是一个GrantedAuthority集合，它用来代表用户的权限。因为安全=认证+授权。通过前面的两个属性我们来进行认证，通过最后一个属性我们来进行授权，我们通过它来告诉Spring Security当前返回的用户具有哪些权限，然后Spring Security就会根据我们上一篇文章中配置的权限去进行验证。当然，授权的话我们这里暂时也先不讲，所以随便给它一个权限就可以了，AuthorityUtils类的commaSeparatedStringToAuthorityList就是一个把用逗号隔开的字符串转换成它所需要的GrantedAuthority集合的方法，我们在这里直接写死一个“admin”。</li>
+</ul>
+<p>然后我们启动应用，可以看到这次控制台已经不打印随机的字符串密码了。<br>然后我们访问<a href="http://localhost:8080/hello" target="_blank" rel="noopener">http://localhost:8080/hello</a> ,又被重定向回登录页，我们首先输入任意的用户名，密码输入“123”进行尝试，可以看到如下图的一个效果。   </p>
+<p><img src="http://p7sojn4oj.bkt.clouddn.com/201853205658.png" alt="201853205658">   </p>
+<p>因为我们在后面的逻辑代码里写的密码是“123456”，所以这次输入的“123”肯定是不匹配的密码，登录肯定是失败的，上图中的“坏的凭证”实际上是机器的一个翻译，实际上就是用户名和密码不匹配的意思。然后接下来我们输入真正的密码“123456”然后再次尝试登录，可以看到，登录成功，成功地访问到了接口。    </p>
+<p><img src="http://p7sojn4oj.bkt.clouddn.com/2018427233524.png" alt="2018427233524"></p>
+<p>然后我们查看后台，可以看到两句日志：<br><figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2018</span><span class="bullet">-04</span><span class="bullet">-20</span> <span class="number">20</span><span class="string">:54:36.291</span>  <span class="string">INFO</span> <span class="number">4584</span> <span class="meta">---</span> <span class="string">[nio-8080-exec-4]</span> <span class="string">c.g.s.service.impl.MyUserDetailsService</span>  <span class="string">:</span> <span class="string">登录用户名:test</span></span><br><span class="line"><span class="number">2018</span><span class="bullet">-04</span><span class="bullet">-20</span> <span class="number">21</span><span class="string">:00:26.855</span>  <span class="string">INFO</span> <span class="number">4584</span> <span class="meta">---</span> <span class="string">[nio-8080-exec-7]</span> <span class="string">c.g.s.service.impl.MyUserDetailsService</span>  <span class="string">:</span> <span class="string">登录用户名:test</span></span><br></pre></td></tr></table></figure></p>
+<p>20:54:36的那一条日志是我们输“123”登录失败的时候打印的日志，说明它成功地进入了我们上面的那个方法，然后返回了密码为123456的User对象，但是由于密码没有对应上，所以这次没有登录成功；21:00:26就是第二次的登录，这次的登录成功，所以我们才最终访问到了自己写的服务。<br>那么现在实际上这个系统已经按照我们自己编写的逻辑在获取用户信息了，那么下面我们来看看如何处理用户的校验逻辑。</p>
+<h1 id="处理用户校验逻辑"><a href="#处理用户校验逻辑" class="headerlink" title="处理用户校验逻辑"></a>处理用户校验逻辑</h1><p>用户的校验逻辑其实主要是两方面，一个是用户的密码是否匹配，密码是否匹配实际上是由Spring Security来做的，我们只需要告诉他我们从数据库中读出来的密码是什么就可以了，第二部分就是其他的一些校验，比如说当前用户是否被冻结了，密码是否过期了等等，那么如何实现第二部分的校验逻辑呢？<br>首先我们来看一下UserDetails接口，也就是UserDetailsService这个接口的loadUserByUsername这个方法的返回值。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserDetails</span> <span class="keyword">extends</span> <span class="title">Serializable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	Collection&lt;? extends GrantedAuthority&gt; getAuthorities();</span><br><span class="line"></span><br><span class="line">	<span class="function">String <span class="title">getPassword</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="function">String <span class="title">getUsername</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">boolean</span> <span class="title">isAccountNonExpired</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">boolean</span> <span class="title">isAccountNonLocked</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">boolean</span> <span class="title">isCredentialsNonExpired</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">boolean</span> <span class="title">isEnabled</span><span class="params">()</span></span>;</span><br></pre></td></tr></table></figure></p>
+<p>在这个方法里实际上封装了Spring Security登录所需要的所有信息：</p>
+<ul>
+<li>getAuthorities我们刚才已经解释了就是它的权限信息</li>
+<li>getPassword就是登录时所需要的密码</li>
+<li>getUsername就是当前登录的用户名</li>
+</ul>
+<p>除了这三个方法后面还有四个返回布尔值的方法，这四个方法就是让我们来执行自己的校验逻辑的，我们需要把自己的校验逻辑的结果通过这四个方法的实现把它返回回去，这四个方法的具体作用分别为：</p>
+<ul>
+<li>isAccountNonExpired就是用来判断账户是不是没有过期，如果这里返回true就认为没有过期，返回false就认为账户过期了，至于怎么判断，这个需要自己去实现，比如说依据数据库里的状态码，当然，如果说我们的系统在设计的时候根本没有考虑这个逻辑的话，这个地方也可以永远地返回true。</li>
+<li>isAccountNonLocked这个方法是用来判断你的账户是不是锁定。这个方法对Spring Security来讲没有什么业务意义，如果返回false框架就会抛出对应的异常，但是在我们的开发里这个字段会有不同的意义，这个字段在我们的业务中一般表示这个账户是否被冻结了。</li>
+<li>isCredentialsNonExpired是用来判断密码是不是过期了，因为安全级别比较高的网站可能会要求30天或者60天变换一次密码，而这个方法就是用来告诉Spring Security我们的密码是不是过期了。</li>
+<li>isEnabled用来判断账户是不是可用，意义和isAccountNonLocked一样。它在我们的业务系统中一般表示用户信息是否被删了，因为在很多的系统里一般用户信息是不会进行真正的删除，而是在数据库里进行逻辑删除。这个方法和isAccountNonLocked的区别是如果账户被冻结了一般还可以恢复。<br>然后我们在这里修改一下代码，加上这几个参数的返回，只要我们把这几个参数任何一个设置成false，Spring Security的校验就不会通过了。我们这里不写详细的校验代码，而是直接把这个信息告诉Spring Security。<br>UserDetails总共有两个构造器，<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">User</span><span class="params">(String username, String password,</span></span></span><br><span class="line"><span class="function"><span class="params">		Collection&lt;? extends GrantedAuthority&gt; authorities)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">this</span>(username, password, <span class="keyword">true</span>, <span class="keyword">true</span>, <span class="keyword">true</span>, <span class="keyword">true</span>, authorities);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">User</span><span class="params">(String username, String password, <span class="keyword">boolean</span> enabled,</span></span></span><br><span class="line"><span class="function"><span class="params">		<span class="keyword">boolean</span> accountNonExpired, <span class="keyword">boolean</span> credentialsNonExpired,</span></span></span><br><span class="line"><span class="function"><span class="params">		<span class="keyword">boolean</span> accountNonLocked, Collection&lt;? extends GrantedAuthority&gt; authorities)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (((username == <span class="keyword">null</span>) || <span class="string">""</span>.equals(username)) || (password == <span class="keyword">null</span>)) &#123;</span><br><span class="line">		<span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(</span><br><span class="line">				<span class="string">"Cannot pass null or empty values to constructor"</span>);</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+<p>为了把这个信息告诉Spring Security，我们就不能使用这个三个参数的UserDetails构造了，我们要用它的一个七个函数的构造方法，那多的四个参数就是这四个方法的判断结果。那么我们先将自己的代码修改成这样：</p>
+<p><img src="http://p7sojn4oj.bkt.clouddn.com/201853215615.png" alt="201853215615"></p>
+<p>可以看到，最后一个判断用户是都锁定的参数我们写死为false。然后我们启动系统，访问<a href="http://localhost:8080/hello" target="_blank" rel="noopener">http://localhost:8080/hello</a> ,这次我们输入任意用户名和正确的密码“123456”，然后点击登录，可以看到如下的效果：</p>
+<p><img src="http://p7sojn4oj.bkt.clouddn.com/2018532206.png" alt="2018532206"></p>
+<p>我们看到界面上写了一个错误原因：用户帐号已被锁定，因为最后一个用来判断用户账号是否锁定的参数我们是写死为false,也就是说当前账户被锁定，因此登录自然不会成功。<br> <strong>注意：
+</strong>我们这个demo用了Spring默认的一个UserDetails接口的实现类User，在真实的项目中，不管用的是Mybatis还是JPA之流都会有一个对象来映射用户表的数据，那么只要用这个对象去实现这个UserDetails接口，然后把用户是否过期是否冻结这些的判断逻辑写在自己的实现类的实现方法里，就能达到和这个同样的效果。</p>
+<h1 id="处理密码的加密和解密"><a href="#处理密码的加密和解密" class="headerlink" title="处理密码的加密和解密"></a>处理密码的加密和解密</h1><p>最后，我们看看密码的加密与解密。实际的生产环境中，我们从数据库中取回来的东西肯定是一个加密过的东西，而不是像这样的“123456”这样的明文,那么我们就来看看Spring Security是如何处理数据的加密与解密的。<br>处理加密与解密的是一个新的接口，叫做PasswordEncoder。</p>
+<p> <strong>注意：</strong> PasswordEncoder在Spring Security的发展过程中存在两个声明，一个是在org.springframework.security.authentication.encoding包下，一个是在org.springframework.security.crypto.password包下,前者已经过时。</p>
+<p>在这个接口中主要有两个方法:<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">PasswordEncoder</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="function">String <span class="title">encode</span><span class="params">(CharSequence rawPassword)</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">boolean</span> <span class="title">matches</span><span class="params">(CharSequence rawPassword, String encodedPassword)</span></span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>encode方法是用来加密的，matches方法是用来验证加密后的密码和用户传过来的密码是否匹配.encode方法是由我们来调的，就是说在用户注册的时候把用户填在页面上的密码先用这个方法进行加密之后再进行入库,matches这个方法是由框架调用的,在登录过程中拿到我们返回给框架的UserDetails对象之后它会拿对象里的password和用户输入的password进行一个匹配，如果这个密码匹配上了就会返回true，反之就会返回false，返回false的时候Spring Security就会抛出异常,然后在页面上返回错误信息。<br>那为什么我们一开始的demo中写的明文密码“123456”也能够认证成功呢？实际上是我们那时候还没有配置PasswordEncoder,下面我们就来进行PasswordEncoder的配置。<br>配置PasswordEncoder很简单，我们只需要在上一篇文章中的配置类WebSecyurity中声明一个PasswordEncoder的bean即可。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WebSecyurity</span> <span class="keyword">extends</span> <span class="title">WebSecurityConfigurerAdapter</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Bean</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> PasswordEncoder <span class="title">passwordEncoder</span><span class="params">()</span></span>&#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">new</span> BCryptPasswordEncoder();</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">		<span class="comment">//启用基于表单形式的登录</span></span><br><span class="line">		http.formLogin()</span><br><span class="line">				.and()</span><br><span class="line">				<span class="comment">//下面的配置都是关于授权的配置</span></span><br><span class="line">				.authorizeRequests()</span><br><span class="line">				<span class="comment">//任何请求</span></span><br><span class="line">				.anyRequest()</span><br><span class="line">				<span class="comment">//都需要认证</span></span><br><span class="line">				.authenticated();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>其中，BCryptPasswordEncoder是PasswordEncoder这个接口的一个实现类，也是Spring Security官方推荐的一种加密方式。如果自己的业务中有自己的加密和解密体系，只要实现PasswordEncoder接口重写它的加密和匹配方法即可。 </p>
+<p> <strong>注意：</strong> Spring Boot 2.x采用的Spring Security5改变了密码的存储格式，这个在本篇中暂时不进行讨论。</p>
+<p>然后我们来看一下效果，代码中先不进行返回密码的处理，我们直接启动应用。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> UserDetails <span class="title">loadUserByUsername</span><span class="params">(String username)</span> <span class="keyword">throws</span> UsernameNotFoundException </span>&#123;</span><br><span class="line">	logger.info(<span class="string">"登录用户名:&#123;&#125;"</span>,username);</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">new</span> User(username,<span class="string">"123456"</span>,<span class="keyword">true</span>,<span class="keyword">true</span>,<span class="keyword">true</span>,<span class="keyword">true</span>,AuthorityUtils.commaSeparatedStringToAuthorityList(<span class="string">"admin"</span>));</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>输入任意用户名和密码“123456”之后，我们可以看到，系统依然提示如下：<br><img src="http://p7sojn4oj.bkt.clouddn.com/201853205658.png" alt="201853205658"><br>会出现这种结果正是因为我们的代码中返回的不是加密后的信息，我们在数据库里读出来的应该是一个加密的信息,所以我们模拟一下这个效果。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyUserDetailsService</span> <span class="keyword">implements</span> <span class="title">UserDetailsService</span> </span>&#123;</span><br><span class="line">	<span class="keyword">private</span> Logger logger=LoggerFactory.getLogger(<span class="keyword">this</span>.getClass());</span><br><span class="line">	<span class="meta">@Autowired</span></span><br><span class="line">	<span class="keyword">private</span> PasswordEncoder passwordEncoder;</span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> UserDetails <span class="title">loadUserByUsername</span><span class="params">(String username)</span> <span class="keyword">throws</span> UsernameNotFoundException </span>&#123;</span><br><span class="line">		logger.info(<span class="string">"登录用户名:&#123;&#125;"</span>,username);</span><br><span class="line">		String password=passwordEncoder.encode(<span class="string">"123456"</span>);</span><br><span class="line">		logger.info(<span class="string">"模拟的数据库的密码为:&#123;&#125;"</span>,password);</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">new</span> User(username,password,<span class="keyword">true</span>,</span><br><span class="line">				<span class="keyword">true</span>,<span class="keyword">true</span>,<span class="keyword">true</span>,</span><br><span class="line">				AuthorityUtils.commaSeparatedStringToAuthorityList(<span class="string">"admin"</span>));</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> <strong>注意：</strong> 实际应用时这个加密的动作应该是在注册的时候完成，真正的登录也是只需要把数据库里的密文密码取出来即可。</p>
+<p>修改完以后我们重启应用,为了看得更清晰，我们直接将加密后的密码打印出来。这次我们还是访问“/hello”服务，输入任意用户名和密码“123456”，可以看到访问成功,我们查看日志，可以看到打印了如下的日志：<br><figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2018</span><span class="bullet">-04</span><span class="bullet">-20</span> <span class="number">23</span><span class="string">:15:32.834</span>  <span class="string">INFO</span> <span class="number">1976</span> <span class="meta">---</span> <span class="string">[nio-8080-exec-6]</span> <span class="string">c.g.s.service.impl.MyUserDetailsService</span>  <span class="string">:</span> <span class="string">登录用户名:test</span></span><br><span class="line"><span class="number">2018</span><span class="bullet">-04</span><span class="bullet">-20</span> <span class="number">23</span><span class="string">:15:32.963</span>  <span class="string">INFO</span> <span class="number">1976</span> <span class="meta">---</span> <span class="string">[nio-8080-exec-6]</span> <span class="string">c.g.s.service.impl.MyUserDetailsService</span>  <span class="string">:</span> <span class="string">模拟的数据库的密码为:$2a$10$kDGU28M5slSLEOr0UuLuP.DdT7y5MzEox5Zgpd/.NTINB9g/ccDBu</span></span><br></pre></td></tr></table></figure></p>
+<p>可以看到，它实际上是拿这个密码和输入的“123456”去进行比对的。然后我们再反复地登录一次。登录进来以后，我们可以看到又打印了一行登录日志：</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2018</span><span class="bullet">-04</span><span class="bullet">-20</span> <span class="number">23</span><span class="string">:15:32.834</span>  <span class="string">INFO</span> <span class="number">1976</span> <span class="meta">---</span> <span class="string">[nio-8080-exec-6]</span> <span class="string">c.g.s.service.impl.MyUserDetailsService</span>  <span class="string">:</span> <span class="string">登录用户名:test</span></span><br><span class="line"><span class="number">2018</span><span class="bullet">-04</span><span class="bullet">-20</span> <span class="number">23</span><span class="string">:15:32.963</span>  <span class="string">INFO</span> <span class="number">1976</span> <span class="meta">---</span> <span class="string">[nio-8080-exec-6]</span> <span class="string">c.g.s.service.impl.MyUserDetailsService</span>  <span class="string">:</span> <span class="string">模拟的数据库的密码为:$2a$10$kDGU28M5slSLEOr0UuLuP.DdT7y5MzEox5Zgpd/.NTINB9g/ccDBu</span></span><br><span class="line"><span class="number">2018</span><span class="bullet">-04</span><span class="bullet">-20</span> <span class="number">23</span><span class="string">:17:52.928</span>  <span class="string">INFO</span> <span class="number">1976</span> <span class="meta">---</span> <span class="string">[nio-8080-exec-9]</span> <span class="string">c.g.s.service.impl.MyUserDetailsService</span>  <span class="string">:</span> <span class="string">登录用户名:test</span></span><br><span class="line"><span class="number">2018</span><span class="bullet">-04</span><span class="bullet">-20</span> <span class="number">23</span><span class="string">:17:53.059</span>  <span class="string">INFO</span> <span class="number">1976</span> <span class="meta">---</span> <span class="string">[nio-8080-exec-9]</span> <span class="string">c.g.s.service.impl.MyUserDetailsService</span>  <span class="string">:</span> <span class="string">模拟的数据库的密码为:$2a$10$fN0udah6zTc6FY/LSAqF7.TXY/6wVUd37yg5eM4x44DF1mYch0mDS</span></span><br></pre></td></tr></table></figure>
+<p>可以看到,这次登录的密码和上次登录的密码是不一致的,这也是Spring Security推荐的这个BCryptPasswordEncoder加密器的强大的地方，它每次加密生成的j结果都是不同的，因为它会随机生成盐并在生成最终密码的时候把这个盐混在密码串里面,然后每次判断的时候就用随机生成的盐再反推回来当时加密的串是什么,最终来判断输入的密码是否匹配。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Spring-Security/" rel="tag"># Spring Security</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/04/01/Spring-Security基本原理/" rel="next" title="Spring Security基本原理">
+                <i class="fa fa-chevron-left"></i> Spring Security基本原理
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/05/05/个性化用户认证流程(一)/" rel="prev" title="个性化用户认证流程(一)">
+                个性化用户认证流程(一) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">小布</p>
+              <p class="site-description motion-element" itemprop="description">曾梦想仗剑走天涯，后来bug太多就没去</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">6</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">4</span>
+                    <span class="site-state-item-name">标签</span>
+                  
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#处理用户信息获取逻辑"><span class="nav-number">1.</span> <span class="nav-text">处理用户信息获取逻辑</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#处理用户校验逻辑"><span class="nav-number">2.</span> <span class="nav-text">处理用户校验逻辑</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#处理密码的加密和解密"><span class="nav-number">3.</span> <span class="nav-text">处理密码的加密和解密</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright"> &copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">小布</span>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.5.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.5.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.5.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.5.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.5.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.5.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.5.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
