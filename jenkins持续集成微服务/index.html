@@ -115,26 +115,26 @@
 <meta property="og:site_name" content="码畜·小布">
 <meta property="og:description" content="今天我们来讲一讲如何通过jenkins持续集成一个前后端分离的微服务工程。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/2018118205611.png">
-<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/2018118205737.png">
-<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/201811821053.png">
-<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/2018118213042.png">
-<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/201811822633.png">
-<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/2018111010332.png">
-<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/20181110104317.png">
-<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/20181110114853.png">
-<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/20181110112213.png">
-<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/20181110112439.png">
-<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/20181110112842.png">
-<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/20181110115611.png">
-<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/20181110125253.png">
-<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/20181110113750.png">
-<meta property="og:image" content="http://p7sojn4oj.bkt.clouddn.com/20181110113843.png">
-<meta property="og:updated_time" content="2018-11-10T05:25:57.662Z">
+<meta property="og:image" content="http://oss1.pig4cloud.com/2018118205611.png">
+<meta property="og:image" content="http://oss1.pig4cloud.com/2018118205737.png">
+<meta property="og:image" content="http://oss1.pig4cloud.com/201811821053.png">
+<meta property="og:image" content="http://oss1.pig4cloud.com/2018118213042.png">
+<meta property="og:image" content="http://oss1.pig4cloud.com/201811822633.png">
+<meta property="og:image" content="http://oss1.pig4cloud.com/2018111010332.png">
+<meta property="og:image" content="http://oss1.pig4cloud.com/20181110104317.png">
+<meta property="og:image" content="http://oss1.pig4cloud.com/20181110114853.png">
+<meta property="og:image" content="http://oss1.pig4cloud.com/20181110112213.png">
+<meta property="og:image" content="http://oss1.pig4cloud.com/20181110112439.png">
+<meta property="og:image" content="http://oss1.pig4cloud.com/20181110112842.png">
+<meta property="og:image" content="http://oss1.pig4cloud.com/20181110115611.png">
+<meta property="og:image" content="http://oss1.pig4cloud.com/20181110125253.png">
+<meta property="og:image" content="http://oss1.pig4cloud.com/20181110113750.png">
+<meta property="og:image" content="http://oss1.pig4cloud.com/20181110113843.png">
+<meta property="og:updated_time" content="2018-11-17T09:43:41.767Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="jenkins持续集成微服务">
 <meta name="twitter:description" content="今天我们来讲一讲如何通过jenkins持续集成一个前后端分离的微服务工程。">
-<meta name="twitter:image" content="http://p7sojn4oj.bkt.clouddn.com/2018118205611.png">
+<meta name="twitter:image" content="http://oss1.pig4cloud.com/2018118205611.png">
 
 
 
@@ -340,12 +340,24 @@
                 
               
 
-              <time title="创建时间：2018-11-10 13:17:56 / 修改时间：13:25:57" itemprop="dateCreated datePublished" datetime="2018-11-10T13:17:56+08:00">2018-11-10</time>
+              <time title="创建时间：2018-11-10 13:17:56" itemprop="dateCreated datePublished" datetime="2018-11-10T13:17:56+08:00">2018-11-10</time>
             
 
             
               
 
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2018-11-17 17:43:41" itemprop="dateModified" datetime="2018-11-17T17:43:41+08:00">2018-11-17</time>
               
             
           </span>
@@ -395,12 +407,12 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nohup java -jar jenkins.war --httpPort=8085 &gt; temp.txt &amp;</span><br></pre></td></tr></table></figure>
 <h3 id="获取登录密码"><a href="#获取登录密码" class="headerlink" title="获取登录密码"></a>获取登录密码</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat temp.txt</span><br></pre></td></tr></table></figure>
 <p>然后找到以下内容并复制：</p>
-<p><img src="http://p7sojn4oj.bkt.clouddn.com/2018118205611.png" alt="2018118205611"></p>
+<p><img src="http://oss1.pig4cloud.com/2018118205611.png" alt="2018118205611"></p>
 <h3 id="访问jenkins"><a href="#访问jenkins" class="headerlink" title="访问jenkins"></a>访问jenkins</h3><p>然后访问你虚拟机的8085端口，第一次运行应该看到这个界面：</p>
-<p><img src="http://p7sojn4oj.bkt.clouddn.com/2018118205737.png" alt="2018118205737"></p>
+<p><img src="http://oss1.pig4cloud.com/2018118205737.png" alt="2018118205737"></p>
 <p>将上图中复制的密码粘贴到输入框中，然后耐心等待其完成初始化工作即可。</p>
 <h3 id="安装插件并完成初始化"><a href="#安装插件并完成初始化" class="headerlink" title="安装插件并完成初始化"></a>安装插件并完成初始化</h3><p>新手用户建议直接选择第一个：安装推荐的插件。</p>
-<p><img src="http://p7sojn4oj.bkt.clouddn.com/201811821053.png" alt="201811821053"></p>
+<p><img src="http://oss1.pig4cloud.com/201811821053.png" alt="201811821053"></p>
 <p>安装完成后会出现初始化用户界面，大家可以自己选择是否进行初始化。如果不想初始化新用户的话可以点击左下角的<strong>使用admin账户继续</strong>即可。</p>
 <p>初始化的工作完成后就会进入jenkins的首页。</p>
 <h3 id="全局工具配置"><a href="#全局工具配置" class="headerlink" title="全局工具配置"></a>全局工具配置</h3><p>本机的jdk安装路径可以通过命令:</p>
@@ -414,14 +426,14 @@
 <p><strong>whereis java</strong>也是如此，它本身不能定位到安装路径。可以通过上面例子去定位安装路径。</p>
 <p><strong>注意:</strong><br>上图输出的是JRE的路径，因此它的JAVA_HOME应该是<strong>/usr/java/jdk1.8.0_191-amd64</strong></p>
 <p>git的话jenkins要求的便是git的可执行路径，因此直接通过<strong>which git</strong>进行获取即可。配置完Java和git环境后不要忘记点击apply然后save。</p>
-<p><img src="http://p7sojn4oj.bkt.clouddn.com/2018118213042.png" alt="2018118213042"></p>
+<p><img src="http://oss1.pig4cloud.com/2018118213042.png" alt="2018118213042"></p>
 <p>配置maven也是同理，通过：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">which</span> mvn</span><br></pre></td></tr></table></figure></p>
 <p>查找到maven可执行文件路径:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost]<span class="comment"># which mvn</span></span><br><span class="line">/opt/maven/bin/mvn</span><br></pre></td></tr></table></figure></p>
 <p>然后<del>人肉</del>凭经验判断它的<strong>MAVEN_HOME</strong>为<strong>/opt/maven</strong></p>
-<p><img src="http://p7sojn4oj.bkt.clouddn.com/201811822633.png" alt="201811822633"></p>
+<p><img src="http://oss1.pig4cloud.com/201811822633.png" alt="201811822633"></p>
 <p>这样基本上全局的工具就配置好了。</p>
-<h3 id="配置jenkins的gogs插件"><a href="#配置jenkins的gogs插件" class="headerlink" title="配置jenkins的gogs插件"></a>配置jenkins的gogs插件</h3><p>公司项目托管在gogs上，而gogs已经有官方的gogs插件了。可以在<strong>系统管理-&gt;插件管理-&gt;可选插件</strong>中进行搜索，我因为已经安装过，所以可以在<strong>已安装</strong>这里选择出来<br><img src="http://p7sojn4oj.bkt.clouddn.com/2018111010332.png" alt="2018111010332"></p>
-<h1 id="进行构建操作"><a href="#进行构建操作" class="headerlink" title="进行构建操作"></a>进行构建操作</h1><h3 id="编写构建微服务UI的过程"><a href="#编写构建微服务UI的过程" class="headerlink" title="编写构建微服务UI的过程"></a>编写构建微服务UI的过程</h3><h4 id="任务配置"><a href="#任务配置" class="headerlink" title="任务配置"></a>任务配置</h4><p>点击左侧菜单的<strong>新建任务</strong>按钮，然后直接选择第一个构建一个自由风格的软件项目并输入一个任务名称，然后点击确定按钮，因为我这里pigx-ui这个任务已经存在了，所以会报如下的警告。<br><img src="http://p7sojn4oj.bkt.clouddn.com/20181110104317.png" alt="20181110104317"></p>
+<h3 id="配置jenkins的gogs插件"><a href="#配置jenkins的gogs插件" class="headerlink" title="配置jenkins的gogs插件"></a>配置jenkins的gogs插件</h3><p>公司项目托管在gogs上，而gogs已经有官方的gogs插件了。可以在<strong>系统管理-&gt;插件管理-&gt;可选插件</strong>中进行搜索，我因为已经安装过，所以可以在<strong>已安装</strong>这里选择出来<br><img src="http://oss1.pig4cloud.com/2018111010332.png" alt="2018111010332"></p>
+<h1 id="进行构建操作"><a href="#进行构建操作" class="headerlink" title="进行构建操作"></a>进行构建操作</h1><h3 id="编写构建微服务UI的过程"><a href="#编写构建微服务UI的过程" class="headerlink" title="编写构建微服务UI的过程"></a>编写构建微服务UI的过程</h3><h4 id="任务配置"><a href="#任务配置" class="headerlink" title="任务配置"></a>任务配置</h4><p>点击左侧菜单的<strong>新建任务</strong>按钮，然后直接选择第一个构建一个自由风格的软件项目并输入一个任务名称，然后点击确定按钮，因为我这里pigx-ui这个任务已经存在了，所以会报如下的警告。<br><img src="http://oss1.pig4cloud.com/20181110104317.png" alt="20181110104317"></p>
 <h4 id="源码管理"><a href="#源码管理" class="headerlink" title="源码管理"></a>源码管理</h4><p>之后我们可以直接切换到<strong>源码管理</strong>选项卡或者下拉到源码管理菜单，填入以下参数：</p>
 <ul>
 <li>源码管理类型选择<strong>git</strong></li>
@@ -434,10 +446,10 @@
 <p>整体代码非常简单，首先进入jenkins的工作目录，<strong>${WORKSPACE}</strong> 是jenkins的一个环境变量，所有的环境变量可以通过 <strong>查看 可用的环境变量列表</strong>这个功能进行查找，<br>然后利用npm工具安装依赖，这个地方调用的就是本地shell里的命令，所以要求在进行整个构建配置之前必须要配置好这些必要的环境。安装完依赖之后打包，然后进入默认的打包生成的目录<strong>dist</strong>中将编译后的静态资源文件复制到nginx的静态资源目录中。</p>
 <h4 id="构建后操作"><a href="#构建后操作" class="headerlink" title="构建后操作"></a>构建后操作</h4><p>为了提高复用性，使每次的构建环境尽可能一致，我在构建后操作里选择一个<strong>Delete workspace when build is done</strong>,这样，在构建完成时，可以删掉工作空间，避免工作空间中已有的文件造成干扰。</p>
 <h4 id="测试构建"><a href="#测试构建" class="headerlink" title="测试构建"></a>测试构建</h4><p>在编写完成之后，我们可以点击构建测试一下脚本是否没有问题。<br>在任务面板选中这个任务之后，点击任务名后面的下拉框，选择<strong>立即构建</strong>，如果有问题,可以点击每个<strong>任务id</strong>后面的下拉框，选择控制台输出，输出的结果就是执行shell的结果，所以可以根据报错的结果调整自己的shell脚本。</p>
-<p><img src="http://p7sojn4oj.bkt.clouddn.com/20181110114853.png" alt="20181110114853"></p>
-<h3 id="编写构建微服务后端的过程"><a href="#编写构建微服务后端的过程" class="headerlink" title="编写构建微服务后端的过程"></a>编写构建微服务后端的过程</h3><h4 id="任务配置-1"><a href="#任务配置-1" class="headerlink" title="任务配置"></a>任务配置</h4><p><img src="http://p7sojn4oj.bkt.clouddn.com/20181110112213.png" alt="20181110112213"></p>
-<h4 id="源码管理-1"><a href="#源码管理-1" class="headerlink" title="源码管理"></a>源码管理</h4><p><img src="http://p7sojn4oj.bkt.clouddn.com/20181110112439.png" alt="20181110112439"></p>
-<h4 id="构建触发器-1"><a href="#构建触发器-1" class="headerlink" title="构建触发器"></a>构建触发器</h4><p><img src="http://p7sojn4oj.bkt.clouddn.com/20181110112842.png" alt="20181110112842"></p>
+<p><img src="http://oss1.pig4cloud.com/20181110114853.png" alt="20181110114853"></p>
+<h3 id="编写构建微服务后端的过程"><a href="#编写构建微服务后端的过程" class="headerlink" title="编写构建微服务后端的过程"></a>编写构建微服务后端的过程</h3><h4 id="任务配置-1"><a href="#任务配置-1" class="headerlink" title="任务配置"></a>任务配置</h4><p><img src="http://oss1.pig4cloud.com/20181110112213.png" alt="20181110112213"></p>
+<h4 id="源码管理-1"><a href="#源码管理-1" class="headerlink" title="源码管理"></a>源码管理</h4><p><img src="http://oss1.pig4cloud.com/20181110112439.png" alt="20181110112439"></p>
+<h4 id="构建触发器-1"><a href="#构建触发器-1" class="headerlink" title="构建触发器"></a>构建触发器</h4><p><img src="http://oss1.pig4cloud.com/20181110112842.png" alt="20181110112842"></p>
 <h4 id="构建-1"><a href="#构建-1" class="headerlink" title="构建"></a>构建</h4><p>后端的构建就比较复杂，一步完不成，需要增加一个调用maven构建步骤。</p>
 <ul>
 <li>调用顶层maven目标</li>
@@ -449,10 +461,10 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> <span class="variable">$&#123;WORKSPACE&#125;</span></span><br><span class="line">docker-compose down</span><br><span class="line">docker system prune -f</span><br><span class="line">docker-compose build</span><br><span class="line">docker-compose up -d</span><br></pre></td></tr></table></figure>
 <p>很简单的几句话，都是docker-compose相关的，有docker-compose基础的可以很简单的就能看懂。</p>
 <p>当然，也可以在shell里调用maven，那样仅需一步就能完成。</p>
-<p><img src="http://p7sojn4oj.bkt.clouddn.com/20181110115611.png" alt="20181110115611"></p>
+<p><img src="http://oss1.pig4cloud.com/20181110115611.png" alt="20181110115611"></p>
 <p>我这边测试就不执行了，虽然更好的方式的确是应该要去执行单元测试。毕竟，持续集成的意义也就是在于能够更早地发现问题。</p>
 <h4 id="构建后操作-1"><a href="#构建后操作-1" class="headerlink" title="构建后操作"></a>构建后操作</h4><p>同上。</p>
-<h4 id="测试构建-1"><a href="#测试构建-1" class="headerlink" title="测试构建"></a>测试构建</h4><p><img src="http://p7sojn4oj.bkt.clouddn.com/20181110125253.png" alt="20181110125253"></p>
+<h4 id="测试构建-1"><a href="#测试构建-1" class="headerlink" title="测试构建"></a>测试构建</h4><p><img src="http://oss1.pig4cloud.com/20181110125253.png" alt="20181110125253"></p>
 <h3 id="配置gogs的webhook"><a href="#配置gogs的webhook" class="headerlink" title="配置gogs的webhook"></a>配置gogs的webhook</h3><p>首先登录私服，然后选择你fork的项目，点击右上角<strong>仓库设置</strong>，选择<strong>管理web钩子</strong>，之后<strong>添加web钩子</strong>，选择<strong>gogs</strong>,需要配置的只有一个推送地址，格式如下：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://jenkinsIP:jenkins端口/gogs-webhook/?job=jenkins中的任务名</span><br></pre></td></tr></table></figure>
 <p>以pigx-ui的环境为例，只需要填入 </p>
@@ -462,10 +474,10 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://jenkins.pig4cloud.com/gogs-webhook/?job=pigx</span><br></pre></td></tr></table></figure>
 <p>即可。</p>
 <p>密钥文本的内容和jenkins中对应任务配置的secret一致。</p>
-<p><img src="http://p7sojn4oj.bkt.clouddn.com/20181110113750.png" alt="20181110113750"></p>
+<p><img src="http://oss1.pig4cloud.com/20181110113750.png" alt="20181110113750"></p>
 <p>之后可以点击下方的测试推送，如果没有问题，会显示：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;&quot;result&quot;:&quot;OK&quot;,&quot;message&quot;:&quot;Job &apos;你配置的任务名&apos; is executed&quot;&#125;</span><br></pre></td></tr></table></figure>
-<p><img src="http://p7sojn4oj.bkt.clouddn.com/20181110113843.png" alt="20181110113843"></p>
+<p><img src="http://oss1.pig4cloud.com/20181110113843.png" alt="20181110113843"></p>
 <p>同时可以观察你的jenkins中是否已经开始构建作业。</p>
 
       
@@ -503,6 +515,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/JetBrains离线jar破解教程/" rel="prev" title="JetBrains离线jar破解教程">
+                JetBrains离线jar破解教程 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -572,7 +588,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">7</span>
+                    <span class="site-state-item-count">8</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
