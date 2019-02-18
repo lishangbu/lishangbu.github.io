@@ -1,0 +1,42 @@
+# Allow to cache content generation.
+cache:
+  enable: true
+
+codeblock:
+  # Code Highlight theme
+  # All available themes: https://theme-next.js.org/highlight/
+  theme:
+    light: stackoverflow-light
+    dark: stackoverflow-dark
+  prism:
+    light: prism
+    dark: prism-dark
+  # Add copy button on codeblock
+  copy_button:
+    enable: true
+    # Available values: default | flat | mac
+    style: mac
+  # Fold code block
+  fold:
+    enable: false
+    height: 500
+
+darkmode: true
+footer:
+  # Specify the date when the site was setup. If not defined, current year will be used.
+  since: 2018
+  # Beian icp information for Chinese users. In China, every legal website should have a beian icp in website footer.
+  # http://www.miitbeian.gov.cn
+  # Beian ICP and gongan information for Chinese users. See: http://www.beian.miit.gov.cn, http://www.beian.gov.cn
+  beian:
+    enable: true
+    icp: 浙ICP备19045666号
+    # The digit in the num of gongan beian.
+    gongan_id:
+    # The full num of gongan beian.
+    gongan_num:
+    # The icon for gongan beian. See: http://www.beian.gov.cn/portal/download
+    gongan_icon_url:  
+# Remove unnecessary files after hexo generate.
+minify: true
+scheme: Gemini
