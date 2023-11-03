@@ -24,7 +24,7 @@ codeblock:
 darkmode: true
 footer:
   # Specify the date when the site was setup. If not defined, current year will be used.
-  since: 2018
+  since: 2017
   # Beian icp information for Chinese users. In China, every legal website should have a beian icp in website footer.
   # http://www.miitbeian.gov.cn
   # Beian ICP and gongan information for Chinese users. See: http://www.beian.miit.gov.cn, http://www.beian.gov.cn
@@ -39,4 +39,4 @@ footer:
     gongan_icon_url:  
 # Remove unnecessary files after hexo generate.
 minify: true
-scheme: Gemini
+scheme: Muse
