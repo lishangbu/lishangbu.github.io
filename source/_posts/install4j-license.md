@@ -1,5 +1,5 @@
 ---
-title: install4j-license
+title: install4j的一点小东西
 date: 2024-02-16 10:17:09
 tags: 软件序列号
 categories: 软件
