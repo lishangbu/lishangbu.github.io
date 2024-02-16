@@ -2,6 +2,7 @@
 title: Typora的一点小东西
 date: 2024-02-16 07:44:50
 tags: 软件和谐
+categories: 软件
 ---
 
 
