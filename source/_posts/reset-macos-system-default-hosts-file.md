@@ -1,7 +1,7 @@
 ---
 title: "macOS:恢复系统默认的hosts文件"
 date: 2023-10-09 08:32:21
-tags: macos
+tags: macos使用技巧
 ---
 
 ## 简介
