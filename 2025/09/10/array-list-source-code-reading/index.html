@@ -20,26 +20,27 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"lishangbu.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.25.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"stackoverflow-light","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
 
-    <meta name="description" content="ArrayList源码阅读成员变量ArrayList具有以下成员变量:    字段名 类型 说明    serialVersionUID long 序列化ID   DEFAULT_CAPACITY int 默认初始容量   EMPTY_ELEMENTDATA Object[] 空数组实例   DEFAULTCAPACITY_EMPTY_ELEMENTDATA Object[] 默认容量的空数组实例">
+    <meta name="description" content="成员变量和静态常量不考虑从AbstractList中继承成的modCount之类的字段,ArrayList具有以下成员变量:    字段名 类型 说明    elementData Object[] 存储元素的数组缓冲区   size int 当前元素数量   包含静态常量的完整定义如下: 123456789101112131415161718192021222324252627282930313">
 <meta property="og:type" content="article">
-<meta property="og:title" content="array-list-source-code-reading">
+<meta property="og:title" content="ArrayList源码阅读">
 <meta property="og:url" content="https://lishangbu.github.io/2025/09/10/array-list-source-code-reading/index.html">
 <meta property="og:site_name" content="我做开发那些年">
-<meta property="og:description" content="ArrayList源码阅读成员变量ArrayList具有以下成员变量:    字段名 类型 说明    serialVersionUID long 序列化ID   DEFAULT_CAPACITY int 默认初始容量   EMPTY_ELEMENTDATA Object[] 空数组实例   DEFAULTCAPACITY_EMPTY_ELEMENTDATA Object[] 默认容量的空数组实例">
+<meta property="og:description" content="成员变量和静态常量不考虑从AbstractList中继承成的modCount之类的字段,ArrayList具有以下成员变量:    字段名 类型 说明    elementData Object[] 存储元素的数组缓冲区   size int 当前元素数量   包含静态常量的完整定义如下: 123456789101112131415161718192021222324252627282930313">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-09-10T08:56:47.000Z">
-<meta property="article:modified_time" content="2025-09-10T12:10:03.738Z">
+<meta property="article:modified_time" content="2025-09-10T21:09:53.197Z">
 <meta property="article:author" content="Shangbu Li">
+<meta property="article:tag" content="JDK">
 <meta name="twitter:card" content="summary">
 
 
 <link rel="canonical" href="https://lishangbu.github.io/2025/09/10/array-list-source-code-reading/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://lishangbu.github.io/2025/09/10/array-list-source-code-reading/","path":"2025/09/10/array-list-source-code-reading/","title":"array-list-source-code-reading"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://lishangbu.github.io/2025/09/10/array-list-source-code-reading/","path":"2025/09/10/array-list-source-code-reading/","title":"ArrayList源码阅读"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>array-list-source-code-reading | 我做开发那些年</title>
+<title>ArrayList源码阅读 | 我做开发那些年</title>
   
 
 
@@ -130,7 +131,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#ArrayList%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB"><span class="nav-number">1.</span> <span class="nav-text">ArrayList源码阅读</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%88%90%E5%91%98%E5%8F%98%E9%87%8F"><span class="nav-number">1.1.</span> <span class="nav-text">成员变量</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A0%E5%8F%82%E6%9E%84%E9%80%A0%E5%99%A8"><span class="nav-number">1.1.1.</span> <span class="nav-text">无参构造器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Collection%E7%9A%84%E6%9E%84%E9%80%A0%E5%99%A8"><span class="nav-number">1.1.2.</span> <span class="nav-text">Collection的构造器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AC%E5%85%B1%E6%96%B9%E6%B3%95"><span class="nav-number">1.2.</span> <span class="nav-text">公共方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#trimToSize"><span class="nav-number">1.2.1.</span> <span class="nav-text">trimToSize</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ensureCapacity"><span class="nav-number">1.2.2.</span> <span class="nav-text">ensureCapacity</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#grow"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">grow</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#grow%E6%89%A9%E5%AE%B9%E7%9A%84%E4%B8%80%E7%82%B9%E9%A2%98%E5%A4%96%E8%AF%9D"><span class="nav-number">1.2.2.1.1.</span> <span class="nav-text">grow扩容的一点题外话</span></a></li></ol></li></ol></li></ol></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%88%90%E5%91%98%E5%8F%98%E9%87%8F%E5%92%8C%E9%9D%99%E6%80%81%E5%B8%B8%E9%87%8F"><span class="nav-number">1.</span> <span class="nav-text">成员变量和静态常量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9E%84%E9%80%A0%E5%99%A8"><span class="nav-number">2.</span> <span class="nav-text">构造器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%A0%E5%85%A5%E4%B8%80%E4%B8%AA%E5%88%9D%E5%A7%8B%E5%AE%B9%E9%87%8F%E7%9A%84%E6%9E%84%E9%80%A0%E5%99%A8"><span class="nav-number">2.1.</span> <span class="nav-text">传入一个初始容量的构造器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A0%E5%8F%82%E6%9E%84%E9%80%A0%E5%99%A8"><span class="nav-number">2.2.</span> <span class="nav-text">无参构造器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Collection%E7%9A%84%E6%9E%84%E9%80%A0%E5%99%A8"><span class="nav-number">2.3.</span> <span class="nav-text">Collection的构造器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AC%E5%85%B1%E6%96%B9%E6%B3%95"><span class="nav-number">3.</span> <span class="nav-text">公共方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#trimToSize"><span class="nav-number">3.1.</span> <span class="nav-text">trimToSize</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ensureCapacity"><span class="nav-number">3.2.</span> <span class="nav-text">ensureCapacity</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#grow"><span class="nav-number">3.2.1.</span> <span class="nav-text">grow</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#grow%E6%89%A9%E5%AE%B9%E7%9A%84%E4%B8%80%E7%82%B9%E9%A2%98%E5%A4%96%E8%AF%9D"><span class="nav-number">3.2.1.1.</span> <span class="nav-text">grow扩容的一点题外话</span></a></li></ol></li></ol></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -143,18 +144,18 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">10</span>
+          <span class="site-state-item-count">11</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-count">3</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-count">4</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -202,12 +203,12 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="array-list-source-code-reading | 我做开发那些年">
+      <meta itemprop="name" content="ArrayList源码阅读 | 我做开发那些年">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          array-list-source-code-reading
+          ArrayList源码阅读
         </h1>
 
         <div class="post-meta-container">
@@ -217,9 +218,24 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2025-09-10 16:56:47 / 修改时间：20:10:03" itemprop="dateCreated datePublished" datetime="2025-09-10T16:56:47+08:00">2025-09-10</time>
+      <time title="创建时间：2025-09-10 16:56:47" itemprop="dateCreated datePublished" datetime="2025-09-10T16:56:47+08:00">2025-09-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-09-11 05:09:53" itemprop="dateModified" datetime="2025-09-11T05:09:53+08:00">2025-09-11</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/" itemprop="url" rel="index"><span itemprop="name">源码阅读</span></a>
+        </span>
     </span>
 
   
@@ -231,7 +247,7 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><h1 id="ArrayList源码阅读"><a href="#ArrayList源码阅读" class="headerlink" title="ArrayList源码阅读"></a>ArrayList源码阅读</h1><h2 id="成员变量"><a href="#成员变量" class="headerlink" title="成员变量"></a>成员变量</h2><p>ArrayList具有以下成员变量:</p>
+    <div class="post-body" itemprop="articleBody"><h2 id="成员变量和静态常量"><a href="#成员变量和静态常量" class="headerlink" title="成员变量和静态常量"></a>成员变量和静态常量</h2><p>不考虑从AbstractList中继承成的<code>modCount</code>之类的字段,ArrayList具有以下成员变量:</p>
 <table>
 <thead>
 <tr>
@@ -241,26 +257,6 @@
 </tr>
 </thead>
 <tbody><tr>
-<td>serialVersionUID</td>
-<td>long</td>
-<td>序列化ID</td>
-</tr>
-<tr>
-<td>DEFAULT_CAPACITY</td>
-<td>int</td>
-<td>默认初始容量</td>
-</tr>
-<tr>
-<td>EMPTY_ELEMENTDATA</td>
-<td>Object[]</td>
-<td>空数组实例</td>
-</tr>
-<tr>
-<td>DEFAULTCAPACITY_EMPTY_ELEMENTDATA</td>
-<td>Object[]</td>
-<td>默认容量的空数组实例</td>
-</tr>
-<tr>
 <td>elementData</td>
 <td>Object[]</td>
 <td>存储元素的数组缓冲区</td>
@@ -271,9 +267,12 @@
 <td>当前元素数量</td>
 </tr>
 </tbody></table>
+<p>包含静态常量的完整定义如下:</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="meta">@java</span>.io.Serial</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">long</span> <span class="variable">serialVersionUID</span> <span class="operator">=</span> <span class="number">8683452581122892189L</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * Default initial capacity.</span></span><br><span class="line"><span class="comment">   * 默认初始容量。</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">DEFAULT_CAPACITY</span> <span class="operator">=</span> <span class="number">10</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * Shared empty array instance used for empty instances.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Object[] EMPTY_ELEMENTDATA = &#123;&#125;;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * Shared empty array instance used for default sized empty instances. We</span></span><br><span class="line"><span class="comment">   * distinguish this from EMPTY_ELEMENTDATA to know how much to inflate when</span></span><br><span class="line"><span class="comment">   * first element is added.</span></span><br><span class="line"><span class="comment">   * 用于默认容量空实例的共享空数组实例。</span></span><br><span class="line"><span class="comment">   * 我们将其与 EMPTY_ELEMENTDATA 区分开来，以便在添加第一个元素时知道应该扩容多少。</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Object[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = &#123;&#125;;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * The array buffer into which the elements of the ArrayList are stored.</span></span><br><span class="line"><span class="comment">   * The capacity of the ArrayList is the length of this array buffer. Any</span></span><br><span class="line"><span class="comment">   * empty ArrayList with elementData == DEFAULTCAPACITY_EMPTY_ELEMENTDATA</span></span><br><span class="line"><span class="comment">   * will be expanded to DEFAULT_CAPACITY when the first element is added.</span></span><br><span class="line"><span class="comment">   * ArrayList用于存储元素的数组缓冲区。ArrayList的容量即为该数组的长度。</span></span><br><span class="line"><span class="comment">   * 任何elementData为DEFAULTCAPACITY_EMPTY_ELEMENTDATA的空ArrayList，</span></span><br><span class="line"><span class="comment">   * 在添加第一个元素时会扩容到DEFAULT_CAPACITY。</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">transient</span> Object[] elementData; <span class="comment">// non-private to simplify nested class access</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * The size of the ArrayList (the number of elements it contains).</span></span><br><span class="line"><span class="comment">   * ArrayList的实际元素个数。</span></span><br><span class="line"><span class="comment">   *</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@serial</span></span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">private</span> <span class="type">int</span> size;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">具有迷惑性的还是如何区分```EMPTY_ELEMENTDATA```和```DEFAULTCAPACITY_EMPTY_ELEMENTDATA```。</span><br><span class="line">简单来说，就是 ```DEFAULTCAPACITY_EMPTY_ELEMENTDATA``` 和 ```EMPTY_ELEMENTDATA``` 虽然都是空数组，但用途不同。</span><br><span class="line">前者用于默认构造的 ArrayList，更多的是标识此List是通过无参构造器构造的；后者用于容量为0的特殊情况。</span><br><span class="line"></span><br><span class="line">## 构造器</span><br><span class="line"></span><br><span class="line">ArrayList有三个构造器:</span><br><span class="line">### 传入一个初始容量的构造器</span><br><span class="line"></span><br><span class="line">```java</span><br><span class="line">    /**</span><br><span class="line">     * Constructs an empty list with the specified initial capacity.</span><br><span class="line">     *</span><br><span class="line">     * @param  initialCapacity  the initial capacity of the list</span><br><span class="line">     * @throws IllegalArgumentException if the specified initial capacity</span><br><span class="line">     *         is negative</span><br><span class="line">     */</span><br><span class="line">    public ArrayList(int initialCapacity) &#123;</span><br><span class="line">        if (initialCapacity &gt; 0) &#123;</span><br><span class="line">            this.elementData = new Object[initialCapacity];</span><br><span class="line">        &#125; else if (initialCapacity == 0) &#123;</span><br><span class="line">            this.elementData = EMPTY_ELEMENTDATA;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            throw new IllegalArgumentException(&quot;Illegal Capacity: &quot;+</span><br><span class="line">                                               initialCapacity);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><code>serialVersionUID，DEFAULT_CAPACITY，elementData，size</code>这四个属性整体中规中矩，一看就知道什么意思。<br>具有迷惑性的还是如何区分<code>EMPTY_ELEMENTDATA```和```DEFAULTCAPACITY_EMPTY_ELEMENTDATA</code>。<br>简单来说，就是 <code>DEFAULTCAPACITY_EMPTY_ELEMENTDATA</code> 和 <code>EMPTY_ELEMENTDATA</code> 虽然都是空数组，但用途不同。<br>前者用于默认构造的 ArrayList，更多的是标识此List是通过无参构造器构造的；后者用于容量为0的特殊情况。</p>
+<h2 id="构造器"><a href="#构造器" class="headerlink" title="构造器"></a>构造器</h2><p>ArrayList有三个构造器</p>
+<h3 id="传入一个初始容量的构造器"><a href="#传入一个初始容量的构造器" class="headerlink" title="传入一个初始容量的构造器"></a>传入一个初始容量的构造器</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Constructs an empty list with the specified initial capacity.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span>  initialCapacity  the initial capacity of the list</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@throws</span> IllegalArgumentException if the specified initial capacity</span></span><br><span class="line"><span class="comment"> *         is negative</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="title function_">ArrayList</span><span class="params">(<span class="type">int</span> initialCapacity)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (initialCapacity &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">this</span>.elementData = <span class="keyword">new</span> <span class="title class_">Object</span>[initialCapacity];</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (initialCapacity == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">this</span>.elementData = EMPTY_ELEMENTDATA;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>(<span class="string">&quot;Illegal Capacity: &quot;</span>+</span><br><span class="line">                                           initialCapacity);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
 <p>代码整体比较简单，就三种情况。传入一个初始容量:</p>
 <ul>
@@ -288,10 +287,10 @@
 <h3 id="Collection的构造器"><a href="#Collection的构造器" class="headerlink" title="Collection的构造器"></a>Collection的构造器</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Constructs a list containing the elements of the specified</span></span><br><span class="line"><span class="comment"> * collection, in the order they are returned by the collection&#x27;s</span></span><br><span class="line"><span class="comment"> * iterator.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> c the collection whose elements are to be placed into this list</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@throws</span> NullPointerException if the specified collection is null</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="title function_">ArrayList</span><span class="params">(Collection&lt;? extends E&gt; c)</span> &#123;</span><br><span class="line">    Object[] a = c.toArray();</span><br><span class="line">    <span class="keyword">if</span> ((size = a.length) != <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (c.getClass() == ArrayList.class) &#123;</span><br><span class="line">            elementData = a;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            elementData = Arrays.copyOf(a, size, Object[].class);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// replace with empty array.</span></span><br><span class="line">        elementData = EMPTY_ELEMENTDATA;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>通过传入的 Collection 创建一个新的 ArrayList，并按集合的迭代器顺序保存元素。<br>具体步骤很简单:</p>
-<ul>
+<ol>
 <li>首先将集合 c 转为数组 a。</li>
 <li>如果集合不为空,会判断集合的类型，如果本身就是 ArrayList 类型，直接修改引用指向复用其内部数组（提升效率）。<br>否则，复制一份新数组，防止外部修改影响内部数据。<br>如果集合为空，则使用共享的空数组 EMPTY_ELEMENTDATA。</li>
-</ul>
+</ol>
 <p>此时，ArrayList若是不为空，则size已经调整为传入集合的大小。</p>
 <p>具体用于复制数组的Arrays类的copyOf源码也很简单:</p>
 <ul>
@@ -348,6 +347,9 @@
     
 
     <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/JDK/" rel="tag"># JDK</a>
+          </div>
 
         
 
@@ -358,6 +360,9 @@
                 </a>
             </div>
             <div class="post-nav-item">
+                <a href="/2025/09/10/hash-map-source-code-reading/" rel="next" title="HashMap源码阅读">
+                  HashMap源码阅读 <i class="fa fa-angle-right"></i>
+                </a>
             </div>
           </div>
     </footer>
