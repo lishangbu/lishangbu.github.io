@@ -138,7 +138,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">11</span>
+          <span class="site-state-item-count">12</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -174,6 +174,128 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://lishangbu.github.io/2025/09/11/concurrent-hash-map-source-code-reading/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Shangbu Li">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我做开发那些年">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 我做开发那些年">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/09/11/concurrent-hash-map-source-code-reading/" class="post-title-link" itemprop="url">ConcurrentHashMap源码阅读</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-09-12 00:00:00" itemprop="dateCreated datePublished" datetime="2025-09-12T00:00:00+08:00">2025-09-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-09-15 07:47:57" itemprop="dateModified" datetime="2025-09-15T07:47:57+08:00">2025-09-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/" itemprop="url" rel="index"><span itemprop="name">源码阅读</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>ConcurrentHashMap是一个支持检索操作完全并发、更新操作高并发的哈希表。该类遵循与 <code>java.util.Hashtable</code> 相同的功能规范，并包含与</p>
+<figure class="highlight plaintext"><figcaption><span>每个方法对应的版本。不过，尽管所有操作都是线程安全的，检索操作不需要加锁，也不支持锁定整个表以阻止所有访问。此类可与依赖其线程安全但不依赖其同步细节的程序中的</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">&#123;@code Hashtable&#125; 完全互操作。</span><br><span class="line"></span><br><span class="line">### get</span><br><span class="line">这次先从get方法开始看起，get是读操作，读操作是无锁的。</span><br><span class="line">```java</span><br><span class="line">    /**</span><br><span class="line">     * Returns the value to which the specified key is mapped,</span><br><span class="line">     * or &#123;@code null&#125; if this map contains no mapping for the key.</span><br><span class="line">     *</span><br><span class="line">     * &lt;p&gt;More formally, if this map contains a mapping from a key</span><br><span class="line">     * &#123;@code k&#125; to a value &#123;@code v&#125; such that &#123;@code key.equals(k)&#125;,</span><br><span class="line">     * then this method returns &#123;@code v&#125;; otherwise it returns</span><br><span class="line">     * &#123;@code null&#125;.  (There can be at most one such mapping.)</span><br><span class="line">     *</span><br><span class="line">     * &lt;p&gt;A return value of &#123;@code null&#125; does not necessarily</span><br><span class="line">     * indicate that the map contains no mapping for the key;</span><br><span class="line">     * it&#x27;s also possible that the map explicitly maps the key to</span><br><span class="line">     * &#123;@code null&#125;.  The &#123;@link #containsKey containsKey&#125; method</span><br><span class="line">     * may be used to distinguish these two cases.</span><br><span class="line">     *</span><br><span class="line">     * @see #put(Object, Object)</span><br><span class="line">     */</span><br><span class="line">    public V get(Object key) &#123;</span><br><span class="line">        Node&lt;K,V&gt;[] tab; Node&lt;K,V&gt; e, p; int n, eh; K ek;</span><br><span class="line">        int h = spread(key.hashCode());</span><br><span class="line">        // 1. 计算hash值，并定位到桶数组中的位置</span><br><span class="line">        if ((tab = table) != null &amp;&amp; (n = tab.length) &gt; 0 &amp;&amp;</span><br><span class="line">            (e = tabAt(tab, (n - 1) &amp; h)) != null) &#123;</span><br><span class="line">            // 2. 遍历链表，查找key对应的节点</span><br><span class="line">            if ((eh = e.hash) == h) &#123;</span><br><span class="line">                if ((ek = e.key) == key || (ek != null &amp;&amp; key.equals(ek)))</span><br><span class="line">                    return e.val;</span><br><span class="line">            &#125;</span><br><span class="line">            else if (eh &lt; 0)</span><br><span class="line">                return (p = e.find(h, key)) != null ? p.val : null;</span><br><span class="line">            while ((e = e.next) != null) &#123;</span><br><span class="line">                if (e.hash == h &amp;&amp;</span><br><span class="line">                    ((ek = e.key) == key || (ek != null &amp;&amp; key.equals(ek))))</span><br><span class="line">                    return e.val;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        return null;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>接下来看一看它和HashMap在内部实现上的一些区别。</p>
+<h4 id="spread"><a href="#spread" class="headerlink" title="spread"></a>spread</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Spreads (XORs) higher bits of hash to lower and also forces top</span></span><br><span class="line"><span class="comment"> * bit to 0. Because the table uses power-of-two masking, sets of</span></span><br><span class="line"><span class="comment"> * hashes that vary only in bits above the current mask will</span></span><br><span class="line"><span class="comment"> * always collide. (Among known examples are sets of Float keys</span></span><br><span class="line"><span class="comment"> * holding consecutive whole numbers in small tables.)  So we</span></span><br><span class="line"><span class="comment"> * apply a transform that spreads the impact of higher bits</span></span><br><span class="line"><span class="comment"> * downward. There is a tradeoff between speed, utility, and</span></span><br><span class="line"><span class="comment"> * quality of bit-spreading. Because many common sets of hashes</span></span><br><span class="line"><span class="comment"> * are already reasonably distributed (so don&#x27;t benefit from</span></span><br><span class="line"><span class="comment"> * spreading), and because we use trees to handle large sets of</span></span><br><span class="line"><span class="comment"> * collisions in bins, we just XOR some shifted bits in the</span></span><br><span class="line"><span class="comment"> * cheapest possible way to reduce systematic lossage, as well as</span></span><br><span class="line"><span class="comment"> * to incorporate impact of the highest bits that would otherwise</span></span><br><span class="line"><span class="comment"> * never be used in index calculations because of table bounds.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * 将哈希值的高位通过异或运算（XOR）传播到低位，并强制最高位为0。</span></span><br><span class="line"><span class="comment"> * 由于哈希表的容量总是2的幂次方，只有低位参与桶索引的计算，</span></span><br><span class="line"><span class="comment"> * 如果哈希值只在高位不同，则会发生碰撞。通过这种方式将高位信息混合到低位，</span></span><br><span class="line"><span class="comment"> * 可以减少碰撞，提高哈希分布的均匀性。</span></span><br><span class="line"><span class="comment"> * 这种做法在速度、实用性和位扩散质量之间做了权衡。</span></span><br><span class="line"><span class="comment"> * 由于很多哈希集合本身分布较好，且对于大量碰撞会用红黑树处理，</span></span><br><span class="line"><span class="comment"> * 所以这里只做了简单的异或操作，既能降低碰撞，也能让高位信息参与索引计算。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="title function_">spread</span><span class="params">(<span class="type">int</span> h)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> (h ^ (h &gt;&gt;&gt; <span class="number">16</span>)) &amp; HASH_BITS;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>前面运算这里不解释，跟hashMap一样，主要看后面的<code> &amp; HASH_BITS</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">作用是消除负数。</span><br><span class="line">为什么要消除负数呢？因为Java中的不存在无符号整数，int是有符号的，最高位是符号位，1是负数，0是正数。</span><br><span class="line">正数的原码、反码、补码都是一样的。</span><br><span class="line">负数的原码：是对应的正数的二进制，但是符号位是1。</span><br><span class="line">符号位是区分正负数用的，1是负数，0是整数(符号位就是最高位的意思，左边第一位)</span><br><span class="line">负数的反码：是除符号位，其余的取反</span><br><span class="line">负数的补码：是反码+1</span><br><span class="line">并且，在计算机系统中，数值一律用补码来存储。这是因为补码在处理加减运算和表示零时具有显著的优势。</span><br><span class="line">举个例子：</span><br><span class="line">-5的原码是：10000000000000000000000000000101</span><br><span class="line">反码是：11111111111111111111111111111010</span><br><span class="line">补码是：11111111111111111111111111111011</span><br><span class="line">```HASH_BITS```换算下来的二进制是：```011111111111111111111111111111111```</span><br><span class="line">而与运算的运算规则就是对两个二进制数的每一位进行比较。只有当两个对应位都为1时，结果才为1，否则为0。</span><br><span class="line">因此```hash &amp; HASH_BITS```，不管hash是正还是负，结果都会转成正数，因为```HASH_BITS```的符号位是0，&amp; 下来的最高位肯定是0，也就是正数。</span><br><span class="line">spread(int h) 的作用其实就是避免hash值是负数，大概是因为```ConcurrentHashMap```内置了```MOVED```、```TREEBIN```、```RESERVED```</span><br><span class="line">这3个hash是负数，为了避免冲突吧。</span><br><span class="line"></span><br><span class="line">#### tabAt</span><br><span class="line">```java</span><br><span class="line">    /*</span><br><span class="line">     * Atomic access methods are used for table elements as well as</span><br><span class="line">     * elements of in-progress next table while resizing.  All uses of</span><br><span class="line">     * the tab arguments must be null checked by callers.  All callers</span><br><span class="line">     * also paranoically precheck that tab&#x27;s length is not zero (or an</span><br><span class="line">     * equivalent check), thus ensuring that any index argument taking</span><br><span class="line">     * the form of a hash value anded with (length - 1) is a valid</span><br><span class="line">     * index.  Note that, to be correct wrt arbitrary concurrency</span><br><span class="line">     * errors by users, these checks must operate on local variables,</span><br><span class="line">     * which accounts for some odd-looking inline assignments below.</span><br><span class="line">     * Note that calls to setTabAt always occur within locked regions,</span><br><span class="line">     * and so require only release ordering.</span><br><span class="line">     *</span><br><span class="line">     * 原子访问方法用于table元素以及扩容时的next table元素。</span><br><span class="line">     * 所有tab参数的使用都需要调用方进行null检查。</span><br><span class="line">     * 调用方还会偏执地预先检查tab的长度不为0，确保(hash &amp; (length-1))形式的索引是有效的。</span><br><span class="line">     * 这些检查必须基于局部变量，以防止并发错误。</span><br><span class="line">     * setTabAt方法的调用总是在加锁区域内，因此只需要release语义。</span><br><span class="line">     */</span><br><span class="line">    @SuppressWarnings(&quot;unchecked&quot;)</span><br><span class="line">    static final &lt;K,V&gt; Node&lt;K,V&gt; tabAt(Node&lt;K,V&gt;[] tab, int i) &#123;</span><br><span class="line">        // 通过Unsafe的getReferenceAcquire方法原子性地获取tab数组指定位置的元素</span><br><span class="line">        return (Node&lt;K,V&gt;)U.getReferenceAcquire(tab, ((long)i &lt;&lt; ASHIFT) + ABASE);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段代码的作用是原子性地读取哈希表（table）指定槽位（bin）上的节点，用于并发场景下安全地获取 ConcurrentHashMap 的桶元素。<br>tabAt 方法通过 Unsafe.getReferenceAcquire，以原子方式读取数组 tab 下标 i 处的元素，保证可见性和并发安全。<br>主要用于高并发下的哈希表读操作，比如 get、put、resize 等，避免数据竞争。<br>((long)i &lt;&lt; ASHIFT) + ABASE 计算出数组元素的真实内存偏移量。</p>
+<h4 id="find"><a href="#find" class="headerlink" title="find"></a>find</h4><p>在 public V get(Object key) 方法中，eh &lt; 0 表示当前桶的第一个节点（e）的 hash 字段是负数。这种情况有三种特殊节点：</p>
+<ol>
+<li>MOVED（-1）：表示该桶是一个转发节点（ForwardingNode），说明哈希表正在扩容，当前桶的数据已经迁移到新的表，需要在新表中继续查找。</li>
+<li>TREEBIN（-2）：表示该桶是树形结构的根节点（TreeBin），需要在红黑树中查找目标 key。</li>
+<li>RESERVED（-3）：表示该节点是占位节点（ReservationNode），用于并发计算时的占位。<br>因此，eh &lt; 0 时，get 方法会通过 e.find(h, key) 进入特殊的查找逻辑（如树查找或迁移查找），而不是普通链表查找。</li>
+</ol>
+<h3 id="put"><a href="#put" class="headerlink" title="put"></a>put</h3><p>put内部依然是putVal,这是高并发下安全插入&#x2F;更新元素的主流程，兼顾性能和线程安全。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** Implementation for put and putIfAbsent */</span></span><br><span class="line"><span class="keyword">final</span> V <span class="title function_">putVal</span><span class="params">(K key, V value, <span class="type">boolean</span> onlyIfAbsent)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (key == <span class="literal">null</span> || value == <span class="literal">null</span>) <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">NullPointerException</span>();</span><br><span class="line">    <span class="type">int</span> <span class="variable">hash</span> <span class="operator">=</span> spread(key.hashCode());</span><br><span class="line">    <span class="type">int</span> <span class="variable">binCount</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (Node&lt;K,V&gt;[] tab = table;;) &#123;</span><br><span class="line">        Node&lt;K,V&gt; f; <span class="type">int</span> n, i, fh; K fk; V fv;</span><br><span class="line">        <span class="keyword">if</span> (tab == <span class="literal">null</span> || (n = tab.length) == <span class="number">0</span>)</span><br><span class="line">            tab = initTable();</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> ((f = tabAt(tab, i = (n - <span class="number">1</span>) &amp; hash)) == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (casTabAt(tab, i, <span class="literal">null</span>, <span class="keyword">new</span> <span class="title class_">Node</span>&lt;K,V&gt;(hash, key, value)))</span><br><span class="line">                <span class="keyword">break</span>;                   <span class="comment">// no lock when adding to empty bin</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> ((fh = f.hash) == MOVED)</span><br><span class="line">            tab = helpTransfer(tab, f);</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (onlyIfAbsent <span class="comment">// check first node without acquiring lock</span></span><br><span class="line">                 &amp;&amp; fh == hash</span><br><span class="line">                 &amp;&amp; ((fk = f.key) == key || (fk != <span class="literal">null</span> &amp;&amp; key.equals(fk)))</span><br><span class="line">                 &amp;&amp; (fv = f.val) != <span class="literal">null</span>)</span><br><span class="line">            <span class="keyword">return</span> fv;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="type">V</span> <span class="variable">oldVal</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">            <span class="keyword">synchronized</span> (f) &#123;</span><br><span class="line">                <span class="keyword">if</span> (tabAt(tab, i) == f) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (fh &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">                        binCount = <span class="number">1</span>;</span><br><span class="line">                        <span class="keyword">for</span> (Node&lt;K,V&gt; e = f;; ++binCount) &#123;</span><br><span class="line">                            K ek;</span><br><span class="line">                            <span class="keyword">if</span> (e.hash == hash &amp;&amp;</span><br><span class="line">                                ((ek = e.key) == key ||</span><br><span class="line">                                 (ek != <span class="literal">null</span> &amp;&amp; key.equals(ek)))) &#123;</span><br><span class="line">                                oldVal = e.val;</span><br><span class="line">                                <span class="keyword">if</span> (!onlyIfAbsent)</span><br><span class="line">                                    e.val = value;</span><br><span class="line">                                <span class="keyword">break</span>;</span><br><span class="line">                            &#125;</span><br><span class="line">                            Node&lt;K,V&gt; pred = e;</span><br><span class="line">                            <span class="keyword">if</span> ((e = e.next) == <span class="literal">null</span>) &#123;</span><br><span class="line">                                pred.next = <span class="keyword">new</span> <span class="title class_">Node</span>&lt;K,V&gt;(hash, key, value);</span><br><span class="line">                                <span class="keyword">break</span>;</span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="keyword">else</span> <span class="keyword">if</span> (f <span class="keyword">instanceof</span> TreeBin) &#123;</span><br><span class="line">                        Node&lt;K,V&gt; p;</span><br><span class="line">                        binCount = <span class="number">2</span>;</span><br><span class="line">                        <span class="keyword">if</span> ((p = ((TreeBin&lt;K,V&gt;)f).putTreeVal(hash, key,</span><br><span class="line">                                                       value)) != <span class="literal">null</span>) &#123;</span><br><span class="line">                            oldVal = p.val;</span><br><span class="line">                            <span class="keyword">if</span> (!onlyIfAbsent)</span><br><span class="line">                                p.val = value;</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="keyword">else</span> <span class="keyword">if</span> (f <span class="keyword">instanceof</span> ReservationNode)</span><br><span class="line">                        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(<span class="string">&quot;Recursive update&quot;</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (binCount != <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="keyword">if</span> (binCount &gt;= TREEIFY_THRESHOLD)</span><br><span class="line">                    treeifyBin(tab, i);</span><br><span class="line">                <span class="keyword">if</span> (oldVal != <span class="literal">null</span>)</span><br><span class="line">                    <span class="keyword">return</span> oldVal;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    addCount(<span class="number">1L</span>, binCount);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>主要作用和流程如下：</p>
+<ol>
+<li>参数校验：key 或 value 为 null 时抛出异常。</li>
+<li>计算 hash：对 key 的 hashCode 做扰动处理并去除负数，减少哈希冲突。</li>
+<li>定位桶：通过 (n - 1) &amp; hash 计算桶下标。</li>
+<li>初始化表：如果 table 未初始化或长度为 0，则初始化。</li>
+<li>无锁插入：如果目标桶为空，CAS 方式直接插入新节点，无需加锁。</li>
+<li>扩容迁移：如果桶头节点 hash 为 MOVED，说明正在扩容，协助迁移。</li>
+<li>只插入不存在的 key：如果 onlyIfAbsent 且 key 已存在，直接返回旧值。</li>
+<li>加锁插入&#x2F;更新：否则对桶头节点加锁，链表或树结构中查找&#x2F;插入&#x2F;更新节点。 <ul>
+<li>链表：遍历查找，存在则更新，不存在则尾插新节点。</li>
+<li>树：委托 TreeBin 处理。</li>
+<li>ReservationNode：递归更新异常。</li>
+</ul>
+</li>
+<li>链表转树：如果桶内节点数超过阈值，链表转红黑树。</li>
+<li>计数：插入成功后更新元素计数。</li>
+<li>返回：返回旧值或 null。</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -219,7 +341,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-09-15 06:22:13" itemprop="dateModified" datetime="2025-09-15T06:22:13+08:00">2025-09-15</time>
+      <time title="修改时间：2025-09-15 07:47:57" itemprop="dateModified" datetime="2025-09-15T07:47:57+08:00">2025-09-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -398,7 +520,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-09-15 06:22:13" itemprop="dateModified" datetime="2025-09-15T06:22:13+08:00">2025-09-15</time>
+      <time title="修改时间：2025-09-15 07:47:57" itemprop="dateModified" datetime="2025-09-15T07:47:57+08:00">2025-09-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -574,7 +696,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-09-15 06:22:13" itemprop="dateModified" datetime="2025-09-15T06:22:13+08:00">2025-09-15</time>
+      <time title="修改时间：2025-09-15 07:47:57" itemprop="dateModified" datetime="2025-09-15T07:47:57+08:00">2025-09-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -662,7 +784,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-09-15 06:22:13" itemprop="dateModified" datetime="2025-09-15T06:22:13+08:00">2025-09-15</time>
+      <time title="修改时间：2025-09-15 07:47:57" itemprop="dateModified" datetime="2025-09-15T07:47:57+08:00">2025-09-15</time>
     </span>
 
   
@@ -754,7 +876,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-09-15 06:22:13" itemprop="dateModified" datetime="2025-09-15T06:22:13+08:00">2025-09-15</time>
+      <time title="修改时间：2025-09-15 07:47:57" itemprop="dateModified" datetime="2025-09-15T07:47:57+08:00">2025-09-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -839,7 +961,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-09-15 06:22:13" itemprop="dateModified" datetime="2025-09-15T06:22:13+08:00">2025-09-15</time>
+      <time title="修改时间：2025-09-15 07:47:57" itemprop="dateModified" datetime="2025-09-15T07:47:57+08:00">2025-09-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -925,7 +1047,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-09-15 06:22:13" itemprop="dateModified" datetime="2025-09-15T06:22:13+08:00">2025-09-15</time>
+      <time title="修改时间：2025-09-15 07:47:57" itemprop="dateModified" datetime="2025-09-15T07:47:57+08:00">2025-09-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1010,7 +1132,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-09-15 06:22:13" itemprop="dateModified" datetime="2025-09-15T06:22:13+08:00">2025-09-15</time>
+      <time title="修改时间：2025-09-15 07:47:57" itemprop="dateModified" datetime="2025-09-15T07:47:57+08:00">2025-09-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1097,7 +1219,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-09-15 06:22:13" itemprop="dateModified" datetime="2025-09-15T06:22:13+08:00">2025-09-15</time>
+      <time title="修改时间：2025-09-15 07:47:57" itemprop="dateModified" datetime="2025-09-15T07:47:57+08:00">2025-09-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1143,91 +1265,6 @@
 <p>经过以上修改后，重启Typora后，点击左下角未激活，直接提示已激活。</p>
 <p>macos可能会提示软件损坏，该开启任何来源开启任何来源，该移除<code>com.apple.quarantine</code>移除属性。</p>
 
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://lishangbu.github.io/2023/10/31/jprofiler-license/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Shangbu Li">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="我做开发那些年">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | 我做开发那些年">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/10/31/jprofiler-license/" class="post-title-link" itemprop="url">JProfiler的一点小东西</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-10-31 12:56:18" itemprop="dateCreated datePublished" datetime="2023-10-31T12:56:18+08:00">2023-10-31</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-09-15 06:22:13" itemprop="dateModified" datetime="2025-09-15T06:22:13+08:00">2025-09-15</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E5%A4%A9%E7%8C%AB%E5%A4%9C%E8%B0%AD/" itemprop="url" rel="index"><span itemprop="name">天猫夜谭</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>就在刚才，键盘被猫碰掉到地上，敲出了一行神秘字符，神奇的是它还真能用，特此记录。</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">// JProfiler License</span><br><span class="line">// 适用于JProfiler最新版本的注册码，谁还会想要使用破解版呢。</span><br><span class="line"></span><br><span class="line">// v13</span><br><span class="line">S-NEO_PENG#890808-g4tibemn0jen#37bb9</span><br><span class="line"></span><br><span class="line">// v14</span><br><span class="line">S-J14-NEO_PENG#890808-1jqjtz91lywcp9#23624</span><br></pre></td></tr></table></figure>
       
     </div>
 
