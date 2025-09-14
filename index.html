@@ -211,9 +211,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2025-09-11 00:38:00 / 修改时间：05:09:53" itemprop="dateCreated datePublished" datetime="2025-09-11T00:38:00+08:00">2025-09-11</time>
+      <time title="创建时间：2025-09-11 00:38:00" itemprop="dateCreated datePublished" datetime="2025-09-11T00:38:00+08:00">2025-09-11</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-09-15 06:22:13" itemprop="dateModified" datetime="2025-09-15T06:22:13+08:00">2025-09-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -308,11 +314,28 @@
 </ol>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">++modCount;</span><br><span class="line"><span class="keyword">if</span> (++size &gt; threshold)</span><br><span class="line">    resize();</span><br><span class="line">afterNodeInsertion(evict);</span><br><span class="line"><span class="keyword">return</span> <span class="literal">null</span>;</span><br></pre></td></tr></table></figure>
 
-<p>最后，更新modCount和size，如果size超过阈值，调用resize进行扩容,以及提供了一个afterNodeInsertion的回调。用来给子类LinkedHashMap使用的<br><code>afterNodeInsertion</code>，方便LinkedHashMap中被覆盖的afterNodeInsertion方法，用来回调移除最早放入Map的对象。可以看到源码中留有对应的钩子:</p>
+<p>最后，更新modCount和size，如果size超过阈值，调用resize进行扩容,以及提供了一个afterNodeInsertion的回调。用来给子类LinkedHashMap使用的<br><code>afterNodeInsertion</code><br>，方便LinkedHashMap中被覆盖的afterNodeInsertion方法，用来回调移除最早放入Map的对象。可以看到源码中留有对应的钩子:</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Callbacks to allow LinkedHashMap post-actions</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">afterNodeAccess</span><span class="params">(Node&lt;K,V&gt; p)</span> &#123; &#125;</span><br><span class="line"><span class="keyword">void</span> <span class="title function_">afterNodeInsertion</span><span class="params">(<span class="type">boolean</span> evict)</span> &#123; &#125;</span><br><span class="line"><span class="keyword">void</span> <span class="title function_">afterNodeRemoval</span><span class="params">(Node&lt;K,V&gt; p)</span> &#123; &#125;</span><br></pre></td></tr></table></figure>
 
+<p>而如何判断链表是否需要树化成红黑树呢，是通过<code>binCount &gt;= TREEIFY_THRESHOLD - 1</code>来确定的。<br>简单来说，如果当前桶（bin）中的节点数量已经达到或超过 TREEIFY_THRESHOLD - 1，则在插入新节点后，桶中的节点数将达到或超过<br>TREEIFY_THRESHOLD，此时需要将链表结构转换为红黑树结构（treeify）。</p>
+<ul>
+<li>1 是因为计数是从0开始的，插入新节点后才会达到阈值。例如，TREEIFY_THRESHOLD 默认是8，当已有7个节点（binCount &#x3D;&#x3D;<br>7）时，再插入一个节点就达到8，需要树化。</li>
+</ul>
+<h4 id="treeify"><a href="#treeify" class="headerlink" title="treeify"></a>treeify</h4><p>关于树化，是通过以下代码实现的:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="keyword">void</span> <span class="title function_">treeify</span><span class="params">(Node&lt;K,V&gt;[] tab)</span> &#123;</span><br><span class="line">    TreeNode&lt;K,V&gt; root = <span class="literal">null</span>;</span><br><span class="line">    <span class="keyword">for</span> (TreeNode&lt;K,V&gt; x = <span class="built_in">this</span>, next; x != <span class="literal">null</span>; x = next) &#123;</span><br><span class="line">        next = (TreeNode&lt;K,V&gt;)x.next;</span><br><span class="line">        x.left = x.right = <span class="literal">null</span>;</span><br><span class="line">        <span class="keyword">if</span> (root == <span class="literal">null</span>) &#123;</span><br><span class="line">            x.parent = <span class="literal">null</span>;</span><br><span class="line">            x.red = <span class="literal">false</span>;</span><br><span class="line">            root = x;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="type">K</span> <span class="variable">k</span> <span class="operator">=</span> x.key;</span><br><span class="line">            <span class="type">int</span> <span class="variable">h</span> <span class="operator">=</span> x.hash;</span><br><span class="line">            Class&lt;?&gt; kc = <span class="literal">null</span>;</span><br><span class="line">            <span class="keyword">for</span> (TreeNode&lt;K,V&gt; p = root;;) &#123;</span><br><span class="line">                <span class="type">int</span> dir, ph;</span><br><span class="line">                <span class="type">K</span> <span class="variable">pk</span> <span class="operator">=</span> p.key;</span><br><span class="line">                <span class="keyword">if</span> ((ph = p.hash) &gt; h)</span><br><span class="line">                    dir = -<span class="number">1</span>;</span><br><span class="line">                <span class="keyword">else</span> <span class="keyword">if</span> (ph &lt; h)</span><br><span class="line">                    dir = <span class="number">1</span>;</span><br><span class="line">                <span class="keyword">else</span> <span class="keyword">if</span> ((kc == <span class="literal">null</span> &amp;&amp;</span><br><span class="line">                          (kc = comparableClassFor(k)) == <span class="literal">null</span>) ||</span><br><span class="line">                         (dir = compareComparables(kc, k, pk)) == <span class="number">0</span>)</span><br><span class="line">                    dir = tieBreakOrder(k, pk);</span><br><span class="line"></span><br><span class="line">                TreeNode&lt;K,V&gt; xp = p;</span><br><span class="line">                <span class="keyword">if</span> ((p = (dir &lt;= <span class="number">0</span>) ? p.left : p.right) == <span class="literal">null</span>) &#123;</span><br><span class="line">                    x.parent = xp;</span><br><span class="line">                    <span class="keyword">if</span> (dir &lt;= <span class="number">0</span>)</span><br><span class="line">                        xp.left = x;</span><br><span class="line">                    <span class="keyword">else</span></span><br><span class="line">                        xp.right = x;</span><br><span class="line">                    root = balanceInsertion(root, x);</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    moveRootToFront(tab, root);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p>具体流程如下：</p>
+<ol>
+<li>遍历以当前节点为头的链表，将每个节点插入到红黑树中。</li>
+<li>第一个节点直接作为根节点，标记为黑色。</li>
+<li>后续节点根据 hash 值、可比较性和类名等规则插入到红黑树的合适位置，并保持红黑树的平衡。</li>
+<li>最后将红黑树的根节点放到哈希表的桶头。</li>
+</ol>
+<h3 id="get"><a href="#get" class="headerlink" title="get"></a>get</h3><p>同样的，get本身的逻辑很简单，是委托给内部的一个getNode方法实现的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Returns the value to which the specified key is mapped,</span></span><br><span class="line"><span class="comment"> * or &#123;<span class="doctag">@code</span> null&#125; if this map contains no mapping for the key.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;More formally, if this map contains a mapping from a key</span></span><br><span class="line"><span class="comment"> * &#123;<span class="doctag">@code</span> k&#125; to a value &#123;<span class="doctag">@code</span> v&#125; such that &#123;<span class="doctag">@code</span> (key==null ? k==null :</span></span><br><span class="line"><span class="comment"> * key.equals(k))&#125;, then this method returns &#123;<span class="doctag">@code</span> v&#125;; otherwise</span></span><br><span class="line"><span class="comment"> * it returns &#123;<span class="doctag">@code</span> null&#125;.  (There can be at most one such mapping.)</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;A return value of &#123;<span class="doctag">@code</span> null&#125; does not &lt;i&gt;necessarily&lt;/i&gt;</span></span><br><span class="line"><span class="comment"> * indicate that the map contains no mapping for the key; it&#x27;s also</span></span><br><span class="line"><span class="comment"> * possible that the map explicitly maps the key to &#123;<span class="doctag">@code</span> null&#125;.</span></span><br><span class="line"><span class="comment"> * The &#123;<span class="doctag">@link</span> #containsKey containsKey&#125; operation may be used to</span></span><br><span class="line"><span class="comment"> * distinguish these two cases.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@see</span> #put(Object, Object)</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * 返回指定key对应的value，如果没有该key的映射则返回null。</span></span><br><span class="line"><span class="comment"> * 注意，返回null不一定表示没有该key的映射，也可能是该key被显式映射为null。</span></span><br><span class="line"><span class="comment"> * 可以通过containsKey方法区分这两种情况。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> V <span class="title function_">get</span><span class="params">(Object key)</span> &#123;</span><br><span class="line">    Node&lt;K,V&gt; e;</span><br><span class="line">    <span class="keyword">return</span> (e = getNode(key)) == <span class="literal">null</span> ? <span class="literal">null</span> : e.value;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<h4 id="getNode"><a href="#getNode" class="headerlink" title="getNode"></a>getNode</h4><p>getNode的实现如下,很简单直接在关键源码处添加注释了:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Implements Map.get and related methods.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> key the key</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> the node, or null if none</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">final</span> Node&lt;K,V&gt; <span class="title function_">getNode</span><span class="params">(Object key)</span> &#123;</span><br><span class="line">    Node&lt;K,V&gt;[] tab; Node&lt;K,V&gt; first, e; <span class="type">int</span> n, hash; K k;</span><br><span class="line">    <span class="comment">// 哈希表不为空且长度大于0且计算哈希表下标后获取该位置的第一个节点也不为空</span></span><br><span class="line">    <span class="keyword">if</span> ((tab = table) != <span class="literal">null</span> &amp;&amp; (n = tab.length) &gt; <span class="number">0</span> &amp;&amp;</span><br><span class="line">        (first = tab[(n - <span class="number">1</span>) &amp; (hash = hash(key))]) != <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="comment">// 检查第一个节点是否匹配</span></span><br><span class="line">        <span class="keyword">if</span> (first.hash == hash &amp;&amp; <span class="comment">// always check first node</span></span><br><span class="line">            ((k = first.key) == key || (key != <span class="literal">null</span> &amp;&amp; key.equals(k))))</span><br><span class="line">            <span class="keyword">return</span> first;</span><br><span class="line">        <span class="comment">// 遍历链表或红黑树</span></span><br><span class="line">        <span class="keyword">if</span> ((e = first.next) != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (first <span class="keyword">instanceof</span> TreeNode)</span><br><span class="line">                <span class="comment">// 如果是红黑树节点，调用红黑树的查找方法</span></span><br><span class="line">                <span class="keyword">return</span> ((TreeNode&lt;K,V&gt;)first).getTreeNode(hash, key);</span><br><span class="line">            <span class="keyword">do</span> &#123;</span><br><span class="line">                <span class="comment">// 否则遍历链表</span></span><br><span class="line">                <span class="keyword">if</span> (e.hash == hash &amp;&amp;</span><br><span class="line">                    ((k = e.key) == key || (key != <span class="literal">null</span> &amp;&amp; key.equals(k))))</span><br><span class="line">                    <span class="keyword">return</span> e;</span><br><span class="line">            &#125; <span class="keyword">while</span> ((e = e.next) != <span class="literal">null</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
       
     </div>
@@ -375,7 +398,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-09-11 05:09:53" itemprop="dateModified" datetime="2025-09-11T05:09:53+08:00">2025-09-11</time>
+      <time title="修改时间：2025-09-15 06:22:13" itemprop="dateModified" datetime="2025-09-15T06:22:13+08:00">2025-09-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -551,7 +574,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-09-11 05:09:53" itemprop="dateModified" datetime="2025-09-11T05:09:53+08:00">2025-09-11</time>
+      <time title="修改时间：2025-09-15 06:22:13" itemprop="dateModified" datetime="2025-09-15T06:22:13+08:00">2025-09-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -639,7 +662,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-09-11 05:09:53" itemprop="dateModified" datetime="2025-09-11T05:09:53+08:00">2025-09-11</time>
+      <time title="修改时间：2025-09-15 06:22:13" itemprop="dateModified" datetime="2025-09-15T06:22:13+08:00">2025-09-15</time>
     </span>
 
   
@@ -731,7 +754,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-09-11 05:09:53" itemprop="dateModified" datetime="2025-09-11T05:09:53+08:00">2025-09-11</time>
+      <time title="修改时间：2025-09-15 06:22:13" itemprop="dateModified" datetime="2025-09-15T06:22:13+08:00">2025-09-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -816,7 +839,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-09-11 05:09:53" itemprop="dateModified" datetime="2025-09-11T05:09:53+08:00">2025-09-11</time>
+      <time title="修改时间：2025-09-15 06:22:13" itemprop="dateModified" datetime="2025-09-15T06:22:13+08:00">2025-09-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -902,7 +925,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-09-11 05:09:53" itemprop="dateModified" datetime="2025-09-11T05:09:53+08:00">2025-09-11</time>
+      <time title="修改时间：2025-09-15 06:22:13" itemprop="dateModified" datetime="2025-09-15T06:22:13+08:00">2025-09-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -987,7 +1010,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-09-11 05:09:53" itemprop="dateModified" datetime="2025-09-11T05:09:53+08:00">2025-09-11</time>
+      <time title="修改时间：2025-09-15 06:22:13" itemprop="dateModified" datetime="2025-09-15T06:22:13+08:00">2025-09-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1074,7 +1097,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-09-11 05:09:53" itemprop="dateModified" datetime="2025-09-11T05:09:53+08:00">2025-09-11</time>
+      <time title="修改时间：2025-09-15 06:22:13" itemprop="dateModified" datetime="2025-09-15T06:22:13+08:00">2025-09-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1181,7 +1204,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-09-11 05:09:53" itemprop="dateModified" datetime="2025-09-11T05:09:53+08:00">2025-09-11</time>
+      <time title="修改时间：2025-09-15 06:22:13" itemprop="dateModified" datetime="2025-09-15T06:22:13+08:00">2025-09-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
